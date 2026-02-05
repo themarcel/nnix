@@ -21,17 +21,17 @@ in {
 
   home.packages = with pkgs; [
     (config.lib.nixGL.wrap mixxx)
+    # ungoogled-chromium
+    # zeroad
+    # stremio
     pkgsStable.hyprlock
     pkgsStable.hyprland-qtutils
-    # stremio
     alacritty
     neovide
     xdg-desktop-portal-hyprland
     grim
-    # zeroad
     slurp
     telegram-desktop
-    # ungoogled-chromium
     imv
     alsa-utils
     gst_all_1.gstreamer

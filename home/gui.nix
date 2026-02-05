@@ -468,6 +468,11 @@ in {
       recursive = true;
     };
 
+    # ".config/borders" = {
+    #   source = link "${dots}/.config/borders";
+    #   recursive = true;
+    # };
+
     ".config/wob" = {
       source = link "${dots}/.config/wob";
       recursive = true;
