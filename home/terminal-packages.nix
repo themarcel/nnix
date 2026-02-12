@@ -66,7 +66,7 @@ with pkgs; [
   haralyzer
   htop
   hyprland-workspaces
-  imagemagick_light
+  imagemagick
   iptables
   jaq
   java-language-server

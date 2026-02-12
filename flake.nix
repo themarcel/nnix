@@ -3,8 +3,6 @@
 
   inputs = {
     mq.url = "github:marcelarie/mq";
-    ki-editor.url = "github:ki-editor/ki-editor";
-    musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
@@ -119,7 +117,6 @@
         (final: prev: {haralyzer = inputs.haralyzer.packages.${system}.default;})
         (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
-        (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
       ];
     };
     pkgsAndroid = import nixpkgsStable {
