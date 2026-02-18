@@ -444,6 +444,7 @@ in {
 
   home.packages = with pkgs; [
     firefly-iii
+    grayjay
     audio-select
     blesh
     winetricks

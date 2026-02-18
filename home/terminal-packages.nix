@@ -4,6 +4,7 @@ with pkgs; [
   # helix
   # libreoffice
   # lsv
+  flyctl
   appimage-run
   passff-host
   astro-language-server
