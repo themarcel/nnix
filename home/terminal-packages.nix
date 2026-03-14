@@ -89,7 +89,6 @@ with pkgs; [
   moor
   murex
   ncdu
-  neofetch
   neovim
   nftables
   nil

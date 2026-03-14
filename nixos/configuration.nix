@@ -44,6 +44,10 @@
     connect-timeout = 15;
   };
 
+  services.protonmail-bridge = {
+    enable = true;
+  };
+
   # TODO: Learn how to setup cachix auto push
   # Option 1:
   # services.cachix-agent.enable = true;

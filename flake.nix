@@ -34,10 +34,10 @@
       url = "path:./packages/haralyzer";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    foot-fork = {
-      url = "git+https://codeberg.org/marcelarie/foot";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # foot-fork = {
+    #   url = "git+https://codeberg.org/marcelarie/foot";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
     zuban.url = "github:marcelarie/zuban";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
@@ -121,7 +121,7 @@
           })
           (final: prev: { "git-commit-search" = inputs.git-commit-search.packages.${system}.default; })
           (final: prev: { haralyzer = inputs.haralyzer.packages.${system}.default; })
-          (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
+          # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
           (final: prev: { zuban = inputs.zuban.packages.${system}.default; })
           (final: prev: { "ki-editor" = inputs.ki-editor.packages.${system}.default; })
         ];

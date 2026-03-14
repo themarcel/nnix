@@ -461,8 +461,8 @@ in {
     font-awesome
     foot
     mullvad-vpn
-    jitsi
     gimp3
+    protonmail-desktop
     grimblast
     pkgsStable.hyprpaper
     pkgsStable.hyprshot
