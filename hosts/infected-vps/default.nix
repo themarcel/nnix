@@ -1,6 +1,7 @@
 {
   config,
   pkgs,
+  lib,
   inputs,
   ...
 }:
@@ -15,7 +16,17 @@
     port = 3000;
   };
 
-  networking.firewall.allowedTCPPorts = [ 3000 ];
+  services.caddy = {
+    enable = true;
+    virtualHosts."ai.marcel.cool" = {
+      extraConfig = ''
+        reverse_proxy 127.0.0.1:3000
+      '';
+    };
+  };
+
+  networking.firewall.enable = true;
+  networking.firewall.allowedTCPPorts = [ 3000 80 443 ];
 
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
@@ -30,6 +41,7 @@
   services.openssh.enable = true;
 
   environment.systemPackages = with pkgs; [
+    git
     neovim
   ];
 
