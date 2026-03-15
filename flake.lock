@@ -807,11 +807,11 @@
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
-        "lastModified": 1773380286,
-        "narHash": "sha256-EathVGPNu5enzMsY7YNhy89ZUmy0+kiEos3eAM36zaQ=",
+        "lastModified": 1773506769,
+        "narHash": "sha256-bmKmrh8/dbVQ1tsMPa4QsCqIuR1leTt61paLSfplC04=",
         "owner": "ki-editor",
         "repo": "ki-editor",
-        "rev": "88de3cc56113dbfee4ecfb50fdb6ca3b8b0a50eb",
+        "rev": "0638b7c7464ea5c34698a404a67f7aaa40000be9",
         "type": "github"
       },
       "original": {
@@ -872,6 +872,21 @@
       "original": {
         "owner": "musnix",
         "repo": "musnix",
+        "type": "github"
+      }
+    },
+    "my-nixpkgs": {
+      "locked": {
+        "lastModified": 1773510235,
+        "narHash": "sha256-TOqZlOypDPjuW2QiczfrmG4B17HkQTutTqg5l1zAJFE=",
+        "owner": "marcelarie",
+        "repo": "nixpkgs",
+        "rev": "1430ee646af65ef2dfb59bd8c7ec6943c02e13e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marcelarie",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
@@ -1047,11 +1062,11 @@
     },
     "nixpkgs_10": {
       "locked": {
-        "lastModified": 1773282481,
-        "narHash": "sha256-b/GV2ysM8mKHhinse2wz+uP37epUrSE+sAKXy/xvBY4=",
+        "lastModified": 1773389992,
+        "narHash": "sha256-wvfdLLWJ2I9oEpDd9PfMA8osfIZicoQ5MT1jIwNs9Tk=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "fe416aaedd397cacb33a610b33d60ff2b431b127",
+        "rev": "c06b4ae3d6599a672a6210b7021d699c351eebda",
         "type": "github"
       },
       "original": {
@@ -1205,11 +1220,11 @@
     },
     "nixpkgs_8": {
       "locked": {
-        "lastModified": 1773282481,
-        "narHash": "sha256-b/GV2ysM8mKHhinse2wz+uP37epUrSE+sAKXy/xvBY4=",
+        "lastModified": 1773389992,
+        "narHash": "sha256-wvfdLLWJ2I9oEpDd9PfMA8osfIZicoQ5MT1jIwNs9Tk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "fe416aaedd397cacb33a610b33d60ff2b431b127",
+        "rev": "c06b4ae3d6599a672a6210b7021d699c351eebda",
         "type": "github"
       },
       "original": {
@@ -1313,11 +1328,11 @@
         "nixpkgs": "nixpkgs_10"
       },
       "locked": {
-        "lastModified": 1773483820,
-        "narHash": "sha256-xAR9oI3O3Z3q48JuHfijimXk+VIEn+R9jHEVmy4m+dQ=",
+        "lastModified": 1773509976,
+        "narHash": "sha256-+hhmlpC1O+2f5V4WFI6chqQfZizdzDKk8UTon8SUheA=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "e94f70d9dd38ae944db23e0e04e7219b308c2bd4",
+        "rev": "e12e2ccf5eb518213b869c3e2ede92f077943850",
         "type": "github"
       },
       "original": {
@@ -1397,6 +1412,7 @@
         "lsv": "lsv",
         "mq": "mq",
         "musnix": "musnix",
+        "my-nixpkgs": "my-nixpkgs",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-on-droid": "nix-on-droid",
         "nixGL": "nixGL",

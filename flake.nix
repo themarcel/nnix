@@ -7,6 +7,7 @@
     musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    my-nixpkgs.url = "github:marcelarie/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
@@ -88,6 +89,7 @@
       git-commit-search,
       haralyzer,
       nur,
+      my-nixpkgs,
       ...
     }@inputs:
     let
@@ -124,6 +126,9 @@
           # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
           (final: prev: { zuban = inputs.zuban.packages.${system}.default; })
           (final: prev: { "ki-editor" = inputs.ki-editor.packages.${system}.default; })
+          (final: prev: {
+            protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
+          })
         ];
       };
       pkgsAndroid = import nixpkgsStable {
@@ -165,6 +170,14 @@
               extraSpecialArgs = { inherit inputs pkgsStable nixGL; };
             };
           }
+        ];
+      };
+
+      nixosConfigurations.infected-vps = nixpkgs.lib.nixosSystem {
+        inherit system pkgs;
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./hosts/infected-vps/default.nix
         ];
       };
 
