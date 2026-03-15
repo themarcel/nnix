@@ -44,6 +44,7 @@ with pkgs; [
   evtest
   eza
   fastfetch
+  hcloud
   fd
   fennel-ls
   ffmpeg

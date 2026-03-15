@@ -4,8 +4,7 @@
   lib,
   inputs,
   ...
-}:
-{
+}: {
   imports = [
     ./hardware-configuration.nix
   ];
@@ -26,7 +25,7 @@
   };
 
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 3000 80 443 ];
+  networking.firewall.allowedTCPPorts = [3000 80 443];
 
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
@@ -44,6 +43,14 @@
     git
     neovim
   ];
+
+  users.users.admin = {
+    isNormalUser = true;
+    extraGroups = ["wheel"];
+    password = "utR79srquaKv";
+  };
+
+  users.users.root.openssh.authorizedKeys.keys = [''ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv''];
 
   system.stateVersion = "24.11";
 }
