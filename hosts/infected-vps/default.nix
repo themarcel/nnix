@@ -59,10 +59,9 @@
     neovim
   ];
 
-  users.users.admin = {
+  users.users.dev = {
     isNormalUser = true;
     extraGroups = ["wheel"];
-    password = "utR79srquaKv";
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
