@@ -64,6 +64,10 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -90,6 +94,7 @@
       haralyzer,
       nur,
       my-nixpkgs,
+      disko,
       ...
     }@inputs:
     let
@@ -177,6 +182,7 @@
         inherit system pkgs;
         specialArgs = { inherit inputs; };
         modules = [
+          disko.nixosModules.disko
           ./hosts/infected-vps/default.nix
         ];
       };

@@ -7,6 +7,7 @@
 }: {
   imports = [
     ./hardware-configuration.nix
+    ./disk-config.nix
   ];
 
   services.open-webui = {
@@ -25,10 +26,18 @@
   };
 
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [3000 80 443];
+  networking.firewall.allowedTCPPorts = [
+    3000
+    80
+    443
+  ];
 
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/sda";
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda";
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+  };
 
   services.logrotate.checkConfig = false;
 
@@ -37,7 +46,13 @@
 
   networking.hostName = "marcel-cool-vps";
 
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      PermitRootLogin = "prohibit-password";
+      PasswordAuthentication = false;
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     git
@@ -50,7 +65,9 @@
     password = "utR79srquaKv";
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [''ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv''];
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+  ];
 
   system.stateVersion = "24.11";
 }
