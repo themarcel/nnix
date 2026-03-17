@@ -4,10 +4,12 @@
   lib,
   inputs,
   ...
-}: {
+}:
+{
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
+    inputs.home-manager.nixosModules.home-manager
   ];
 
   services.open-webui = {
@@ -25,12 +27,17 @@
     };
   };
 
-  networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [
-    3000
-    80
-    443
-  ];
+  networking = {
+    hostName = "marcel-cool-vps";
+    firewall = {
+      enable = true;
+      allowedTCPPorts = [
+        80
+        443
+        3000
+      ];
+    };
+  };
 
   boot.loader.grub = {
     enable = true;
@@ -38,19 +45,16 @@
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
+  boot.tmp.cleanOnBoot = true;
 
   services.logrotate.checkConfig = false;
-
-  boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
-
-  networking.hostName = "marcel-cool-vps";
 
   services.openssh = {
     enable = true;
     settings = {
       PermitRootLogin = "prohibit-password";
-      PasswordAuthentication = false;
+      PasswordAuthentication = true;
     };
   };
 
@@ -59,14 +63,40 @@
     neovim
   ];
 
-  users.users.dev = {
-    isNormalUser = true;
-    extraGroups = ["wheel"];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
+  users = {
+    users.dev = {
+      isNormalUser = true;
+      extraGroups = [ "wheel" ];
+      packages = with pkgs; [
+        git
+      ];
+    };
+
+    users.root.openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+    ];
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
-  ];
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    extraSpecialArgs = {
+      inherit inputs;
+      inherit (inputs) nvim;
+      inherit pkgs;
+    };
+    users.dev =
+      { lib, ... }:
+      {
+        home.stateVersion = "24.11";
+        imports = [ inputs.nvim.homeManagerModules.default ];
+      };
+  };
 
   system.stateVersion = "24.11";
 }
