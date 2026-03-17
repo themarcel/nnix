@@ -8,6 +8,7 @@ with pkgs; [
   # lsv
   # rff
   aider-chat
+  flyctl
   appimage-run
   astro-language-server
   atool
@@ -49,6 +50,7 @@ with pkgs; [
   evtest
   eza
   fastfetch
+  hcloud
   fd
   fennel-ls
   ffmpeg
@@ -99,7 +101,6 @@ with pkgs; [
   moor
   murex
   ncdu
-  neofetch
   neovim
   newsboat
   nftables

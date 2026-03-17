@@ -5,9 +5,11 @@
     mq.url = "github:marcelarie/mq";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    my-nixpkgs.url = "github:marcelarie/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
+    nvim.url = "github:marcelarie/nvim-lua";
     lsv = {
       url = "path:./packages/lsv";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -61,6 +63,10 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -85,6 +91,8 @@
     git-commit-search,
     haralyzer,
     nur,
+    my-nixpkgs,
+    disko,
     ...
   } @ inputs: let
     hyprlandInputs = inputs.hyprland;
@@ -117,9 +125,12 @@
         })
         (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
         (final: prev: {haralyzer = inputs.haralyzer.packages.${system}.default;})
-        (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
+        # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
+        (final: prev: {
+          protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
+        })
       ];
     };
     pkgsAndroid = import nixpkgsStable {
@@ -160,6 +171,15 @@
             extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
           };
         }
+      ];
+    };
+
+    nixosConfigurations.infected-vps = nixpkgs.lib.nixosSystem {
+      inherit system pkgs;
+      specialArgs = {inherit inputs;};
+      modules = [
+        disko.nixosModules.disko
+        ./hosts/infected-vps/default.nix
       ];
     };
 
