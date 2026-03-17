@@ -2,19 +2,22 @@
 {pkgs}:
 with pkgs; [
   # helix
+  # helix
+  # libreoffice
   # libreoffice
   # lsv
+  # rff
+  aider-chat
   appimage-run
-  passff-host
   astro-language-server
   atool
   atuin
   bacon
-  beets
   bash
   bash-language-server
   bash-preexec
   bat
+  beets
   bind
   biome
   black
@@ -26,9 +29,12 @@ with pkgs; [
   chafa
   charm-freeze
   clang-tools
+  clang-tools
   claude-code
   codex
   cowsay
+  cowsay
+  csvlens
   csvlens
   delta
   deno
@@ -59,11 +65,14 @@ with pkgs; [
   git-commit-search
   gitFull
   glirc
+  glirc
   glow
   gnumake
   google-cloud-sdk-gce
   gping
+  gst_all_1.gstreamer
   haralyzer
+  htmlq
   htop
   hyprland-workspaces
   imagemagick
@@ -84,12 +93,15 @@ with pkgs; [
   marksman
   mdformat
   mdwatch
+  mdwatch
+  mdx-language-server
   mediainfo
   moor
   murex
   ncdu
   neofetch
   neovim
+  newsboat
   nftables
   nil
   nix-diff
@@ -109,6 +121,7 @@ with pkgs; [
   pamixer
   parted
   pass
+  passff-host
   patchutils
   pfetch
   playerctl
@@ -117,17 +130,18 @@ with pkgs; [
   prettierd
   prettierd
   pulseaudio-next-output
+  pulseaudio-next-output
   pulseaudioFull
+  pwgen
+  python314Packages.huggingface-hub
   python3Packages.python-lsp-server
   rabbitmqadmin-ng
   repgrep
-  # rff
-  pulseaudio-next-output
   ripgrep
   ruby
   rustup
   sendme
-  clang-tools
+  shellcheck
   shfmt
   slskd
   socat
@@ -140,6 +154,7 @@ with pkgs; [
   starship
   stylua
   sysz
+  tailwindcss-language-server
   taplo
   taskwarrior-tui
   taskwarrior3
@@ -154,10 +169,14 @@ with pkgs; [
   typos-lsp
   typos-lsp
   typst
+  unrar
   unzip
   util-linux
   uv
   v4l-utils
+  v4l-utils
+  vale
+  vale-ls
   vscode-langservers-extracted
   vtsls
   w3m
@@ -173,23 +192,5 @@ with pkgs; [
   zk
   zoxide
   zsh
-  # helix
-  # libreoffice
-  cowsay
-  csvlens
-  v4l-utils
-  gst_all_1.gstreamer
-  glirc
-  mdwatch
   zuban
-  unrar
-  mdx-language-server
-  htmlq
-  aider-chat
-  vale
-  vale-ls
-  newsboat
-  shellcheck
-  python314Packages.huggingface-hub
-  pwgen
 ]

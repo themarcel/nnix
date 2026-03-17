@@ -1,4 +1,11 @@
-{ config, pkgs, lib, username, ... }: {
+{
+  config,
+  pkgs,
+  lib,
+  username,
+  ...
+}:
+{
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -14,7 +21,10 @@
     keep-outputs = true;
     keep-derivations = true;
     auto-optimise-store = true;
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     warn-dirty = false;
     substituters = [
       "https://nix-community.cachix.org"
@@ -24,10 +34,13 @@
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "nix-community.cachix.org-1:mB9FSh9qf2QlZceJ1306tMKZnQAS4p75VYwtwHf1qkw="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       # "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
     ];
-    trusted-users = [ "root" "marcel" ];
+    trusted-users = [
+      "root"
+      "marcel"
+    ];
     connect-timeout = 15;
   };
 
@@ -66,7 +79,11 @@
     bluetooth = {
       enable = true;
       powerOnBoot = true;
-      settings = { General = { ReconnectAttempts = "0"; }; };
+      settings = {
+        General = {
+          ReconnectAttempts = "0";
+        };
+      };
     };
   };
   services.mullvad-vpn.enable = true;
@@ -89,6 +106,15 @@
   # Enable networking
   networking.networkmanager.enable = true;
   networking.networkmanager.plugins = with pkgs; [ networkmanager-openvpn ];
+  # Enable the OpenSSH daemon.
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
   # networking.enableIPv6 = false;
 
   # Set your time zone.
@@ -124,7 +150,9 @@
     layout = "us";
     variant = "";
   };
-  services.nzbget = { enable = true; };
+  services.nzbget = {
+    enable = true;
+  };
 
   systemd.services.slskd.serviceConfig.ProtectHome = lib.mkForce false;
 
@@ -152,6 +180,8 @@
       };
       soulseek = {
         listen_port = 50300;
+        username = "mwallace";
+        password = "tetra-cactus-003";
       };
       web = {
         port = 5030;
@@ -167,7 +197,9 @@
     };
   };
 
-  services.ollama = { enable = true; };
+  services.ollama = {
+    enable = true;
+  };
 
   systemd.services.ollama.environment = {
     OLLAMA_CONTEXT_LENGTH = "32768";
@@ -178,6 +210,10 @@
   services.open-webui = {
     enable = true;
     port = 8080;
+    environment = {
+      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+      WEBUI_AUTH = "False";
+    };
   };
 
   # Enable CUPS to print documents.
@@ -219,13 +255,17 @@
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
-    extraGroups = [ "networkmanager" "wheel" "audio" "docker" ];
-    packages = with pkgs;
-      [
-        kitty
-        # kdePackages.kate
-        #  thunderbird
-      ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "audio"
+      "docker"
+    ];
+    packages = with pkgs; [
+      kitty
+      # kdePackages.kate
+      #  thunderbird
+    ];
   };
 
   services.displayManager = {
@@ -234,7 +274,10 @@
       wayland.enable = true;
       theme = "breeze";
     };
-    sessionPackages = [ pkgs.hyprland pkgs.niri ];
+    sessionPackages = [
+      pkgs.hyprland
+      pkgs.niri
+    ];
     defaultSession = "hyprland";
     autoLogin = {
       enable = false;
@@ -300,17 +343,14 @@
     pinentryPackage = pkgs.pinentry-curses;
   };
 
-  sops = {
-    defaultSopsFile = ../secrets/secrets.yaml;
-    defaultSopsFormat = "yaml";
-    gnupg.home = "/home/marcel/.gnupg";
-    secrets.example_secret = { owner = "marcel"; };
-  };
+  # sops = {
+  #   defaultSopsFile = ../secrets/secrets.yaml;
+  #   defaultSopsFormat = "yaml";
+  #   gnupg.home = "/home/marcel/.gnupg";
+  #   secrets.example_secret = {owner = "marcel";};
+  # };
 
   # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

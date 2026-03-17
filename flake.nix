@@ -33,7 +33,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     foot-fork = {
-      url = "git+https://codeberg.org/marcelarie/foot";
+      url = "git+https://codeberg.org/marcelarie/foot?ref=regex-scrollback-search";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zuban.url = "github:marcelarie/zuban";
@@ -112,11 +112,14 @@
         (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
         (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})
         (final: prev: {rff = inputs.rff.packages.${system}.default;})
-        (final: prev: {"pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;})
+        (final: prev: {
+          "pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;
+        })
         (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
         (final: prev: {haralyzer = inputs.haralyzer.packages.${system}.default;})
         (final: prev: {foot = inputs.foot-fork.packages.${system}.default;})
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
+        (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
       ];
     };
     pkgsAndroid = import nixpkgsStable {
@@ -129,7 +132,10 @@
     };
   in {
     devShells.${system}.default = pkgs.mkShell {
-      packages = with pkgs; [git nix-prefetch];
+      packages = with pkgs; [
+        git
+        nix-prefetch
+      ];
       shellHook = ''
         echo "🐚  Dev shell for ${username} on ${system} ready!"
         export EDITOR=nvim
@@ -143,7 +149,7 @@
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
         inputs.musnix.nixosModules.musnix
-        inputs.sops-nix.nixosModules.sops
+        # inputs.sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         {
           home-manager = {
@@ -165,21 +171,23 @@
           ./home/gui.nix
           ./home/terminal.nix
           ./hosts/work/default.nix
-          ({
-            config,
-            pkgs,
-            nixGL,
-            ...
-          }: {
-            home.username = "mmanzanares";
-            home.homeDirectory = "/home/mmanzanares";
-            targets.genericLinux.enable = true;
+          (
+            {
+              config,
+              pkgs,
+              nixGL,
+              ...
+            }: {
+              home.username = "mmanzanares";
+              home.homeDirectory = "/home/mmanzanares";
+              targets.genericLinux.enable = true;
 
-            targets.genericLinux.nixGL = {
-              packages = nixGL.packages;
-              defaultWrapper = "mesa";
-            };
-          })
+              targets.genericLinux.nixGL = {
+                packages = nixGL.packages;
+                defaultWrapper = "mesa";
+              };
+            }
+          )
         ];
       };
     };
