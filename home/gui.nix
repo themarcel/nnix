@@ -505,6 +505,7 @@ in {
     ydotool
     zathura
     penguin-subtitle-player
+    proton-authenticator
     unzip
     flameshot
     swappy

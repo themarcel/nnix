@@ -4,7 +4,8 @@
   lib,
   username,
   ...
-}: {
+}:
+{
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -108,7 +109,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
+  networking.networkmanager.plugins = with pkgs; [ networkmanager-openvpn ];
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
@@ -146,7 +147,7 @@
   services.desktopManager.plasma6.enable = true;
   programs.hyprland.enable = true;
   xdg.portal.enable = true;
-  xdg.portal.extraPortals = [];
+  xdg.portal.extraPortals = [ ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -179,7 +180,7 @@
         incomplete = "/home/${username}/music/incompleted";
       };
       shares = {
-        directories = ["/home/${username}/music/share"];
+        directories = [ "/home/${username}/music/share" ];
       };
       soulseek = {
         listen_port = 50300;
@@ -239,8 +240,8 @@
   # services.xserver.libinput.enable = true;
 
   security = {
-    # If enabled, pam_wallet will attempt to automatically unlock the user’s default KDE wallet upon login.
-    # If the user has no wallet named “kdewallet”, or the login password does not match their wallet password,
+    # If enabled, pam_wallet will attempt to automatically unlock the user's default KDE wallet upon login.
+    # If the user has no wallet named "kdewallet", or the login password does not match their wallet password,
     # KDE will prompt separately after login.
     pam = {
       services = {
@@ -249,6 +250,10 @@
             enable = true;
             package = pkgs.kdePackages.kwallet-pam;
           };
+        };
+        # Add GNOME keyring support for KDE applications
+        login = {
+          enableGnomeKeyring = true;
         };
       };
     };
@@ -270,6 +275,11 @@
       #  thunderbird
     ];
   };
+
+  services.dbus.enable = true;
+  # Use KWallet instead of GNOME keyring for KDE Plasma
+  services.gnome.gnome-keyring.enable = false;
+  programs.seahorse.enable = true;
 
   services.displayManager = {
     sddm = {

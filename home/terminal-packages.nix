@@ -45,6 +45,7 @@ with pkgs; [
   eza
   fastfetch
   hcloud
+  keyutils
   fd
   fennel-ls
   ffmpeg
