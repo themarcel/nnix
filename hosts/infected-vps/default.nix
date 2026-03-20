@@ -4,8 +4,7 @@
   lib,
   inputs,
   ...
-}:
-{
+}: {
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
@@ -63,6 +62,8 @@
     neovim
   ];
 
+  environment.sessionVariables.NVIM_PROFILE = "minimal";
+
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
@@ -71,7 +72,7 @@
   users = {
     users.dev = {
       isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      extraGroups = ["wheel"];
       packages = with pkgs; [
         git
       ];
@@ -90,12 +91,13 @@
       inherit (inputs) nvim;
       inherit pkgs;
     };
-    users.dev =
-      { lib, ... }:
-      {
-        home.stateVersion = "24.11";
-        imports = [ inputs.nvim.homeManagerModules.default ];
+    users.dev = {lib, ...}: {
+      home = {
+        stateVersion = "24.11";
+        sessionVariables.NVIM_PROFILE = "minimal";
       };
+      imports = [inputs.nvim.homeManagerModules.default];
+    };
   };
 
   system.stateVersion = "24.11";

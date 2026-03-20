@@ -1401,11 +1401,11 @@
         "nixpkgs": "nixpkgs_11"
       },
       "locked": {
-        "lastModified": 1773744374,
-        "narHash": "sha256-wknak77PejOE7mcQ9irVkp/57MJQ2xw75fFesMY8Ypk=",
+        "lastModified": 1773748919,
+        "narHash": "sha256-jc8YUSSgpLmL93WIe75XYAVyj+OYaGhyvaHr17B6RfU=",
         "owner": "marcelarie",
         "repo": "nvim-lua",
-        "rev": "fdc1cf6b9c19dbb04df52f35028d200f0be8db3a",
+        "rev": "a9ca3e65875b9374c5cbd8c05dcb2bace58536e8",
         "type": "github"
       },
       "original": {
