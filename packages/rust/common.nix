@@ -1,5 +1,8 @@
-{ nixpkgs, crane, rust-overlay }:
-let
+{
+  nixpkgs,
+  crane,
+  rust-overlay,
+}: let
   system = "x86_64-linux";
   pkgs = import nixpkgs {
     inherit system;
