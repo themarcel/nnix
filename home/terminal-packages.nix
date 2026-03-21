@@ -186,6 +186,7 @@ with pkgs; [
   zuban
   unrar
   mdx-language-server
+  xmlformat
   htmlq
   aider-chat
   vale
