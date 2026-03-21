@@ -83,6 +83,10 @@
     ];
   };
 
+  services.ollama = {
+    enable = false; # not for now, we need more gpu in some way
+  };
+
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
