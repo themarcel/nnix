@@ -59,7 +59,7 @@
 
   environment.systemPackages = with pkgs; [
     git
-    neovim
+    vim
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
@@ -75,6 +75,20 @@
       extraGroups = ["wheel"];
       packages = with pkgs; [
         git
+        neovim
+        eza
+        zoxide
+        fd
+        fzf
+        bat
+        bottom
+        duf
+        jq
+        ripgrep
+        tmux
+        delta
+        starship
+        direnv
       ];
     };
 
