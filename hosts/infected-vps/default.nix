@@ -86,7 +86,6 @@
         jq
         ripgrep
         tmux
-        delta
         starship
         direnv
       ];
