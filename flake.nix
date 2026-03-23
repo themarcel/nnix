@@ -179,12 +179,12 @@
         ];
       };
 
-      nixosConfigurations.infected-vps = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.vps = nixpkgs.lib.nixosSystem {
         inherit system pkgs;
         specialArgs = { inherit inputs; };
         modules = [
           disko.nixosModules.disko
-          ./hosts/infected-vps/default.nix
+          ./hosts/vps/default.nix
         ];
       };
 
