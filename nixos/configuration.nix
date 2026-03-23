@@ -4,7 +4,8 @@
   lib,
   username,
   ...
-}: {
+}:
+{
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -45,6 +46,29 @@
 
   services.protonmail-bridge = {
     enable = true;
+  };
+
+  services.mpd = {
+    enable = true;
+    musicDirectory = "/home/marcel/techno-electronica/";
+    user = "marcel";
+    startWhenNeeded = true;
+    settings = {
+      audio_output = [
+        {
+          type = "pipewire";
+          name = "PipeWire Output";
+        }
+      ];
+    };
+
+    # Optional:
+    # network.listenAddress = "any"; # if you want to allow non-localhost connections
+    # network.startWhenNeeded = true; # systemd feature: only start MPD service upon connection to its socket
+  };
+
+  systemd.services.mpd.environment = {
+    XDG_RUNTIME_DIR = "/run/user/1000";
   };
 
   # TODO: Learn how to setup cachix auto push
@@ -108,7 +132,7 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
+  networking.networkmanager.plugins = with pkgs; [ networkmanager-openvpn ];
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
@@ -146,7 +170,7 @@
   services.desktopManager.plasma6.enable = true;
   programs.hyprland.enable = true;
   xdg.portal.enable = true;
-  xdg.portal.extraPortals = [];
+  xdg.portal.extraPortals = [ ];
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -179,7 +203,7 @@
         incomplete = "/home/${username}/music/incompleted";
       };
       shares = {
-        directories = ["/home/${username}/music/share"];
+        directories = [ "/home/${username}/music/share" ];
       };
       soulseek = {
         listen_port = 50300;

@@ -140,6 +140,7 @@
     settings = {
       PermitRootLogin = "prohibit-password";
       PasswordAuthentication = true;
+      AllowAgentForwarding = true;
     };
   };
 
@@ -147,8 +148,12 @@
     git
     vim
     tree
+    git
+    duf
+    jq
+    ripgrep
+    tmux
   ];
-
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix.settings.experimental-features = [
@@ -161,7 +166,6 @@
       isNormalUser = true;
       extraGroups = ["wheel"];
       packages = with pkgs; [
-        git
         neovim
         eza
         zoxide
@@ -169,18 +173,20 @@
         fzf
         bat
         bottom
-        duf
-        jq
-        ripgrep
-        tmux
         starship
         direnv
       ];
+      root = {
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+        ];
+      };
+      dev = {
+        openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+        ];
+      };
     };
-
-    users.root.openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
-    ];
 
     users.slskd = {
       isSystemUser = true;

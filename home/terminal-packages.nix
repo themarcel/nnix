@@ -132,7 +132,10 @@ with pkgs; [
   clang-tools
   shfmt
   slskd
+  slsk-batchdl
+  rmpc
   socat
+  mpc
   solargraph
   sox
   speedtest-cli
