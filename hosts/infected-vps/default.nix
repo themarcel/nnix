@@ -11,6 +11,36 @@
     inputs.home-manager.nixosModules.home-manager
   ];
 
+  systemd.tmpfiles.rules = [
+    "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
+    "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
+    "d /var/lib/slskd/music/share 0755 slskd slskd -"
+    "d /etc/slskd 0755 slskd slskd -"
+  ];
+
+  systemd.services.slskd.serviceConfig = {
+    ProtectSystem = lib.mkForce false;
+    PrivateTmp = lib.mkForce false;
+    ProtectHome = lib.mkForce false;
+    PrivateDevices = lib.mkForce false;
+    ProtectKernelTunables = lib.mkForce false;
+    ProtectKernelModules = lib.mkForce false;
+    ProtectControlGroups = lib.mkForce false;
+    RestrictNamespaces = lib.mkForce false;
+    ReadWritePaths = lib.mkForce [
+      "/var/lib/slskd"
+      "/var/lib/slskd/music"
+      "/etc/slskd"
+    ];
+  };
+
+  services.postgresql = {
+    enable = true;
+    authentication = lib.mkForce ''
+      local all all trust
+    '';
+  };
+
   services.open-webui = {
     enable = true;
     host = "0.0.0.0";
@@ -24,6 +54,58 @@
         reverse_proxy 127.0.0.1:3000
       '';
     };
+    virtualHosts = {
+      # "photos.marcel.cool" = {
+      #   extraConfig = ''
+      #     @api path /api/*
+      #     reverse_proxy @api 127.0.0.1:2283
+      #     reverse_proxy 127.0.0.1:3001
+      #   '';
+      # };
+      # "photos-server.marcel.cool" = {
+      #   extraConfig = ''
+      #     @api path /api/*
+      #     reverse_proxy @api 127.0.0.1:2283
+      #     reverse_proxy 127.0.0.1:3001
+      #   '';
+      # };
+      "slskd.marcel.cool" = {
+        extraConfig = ''
+          reverse_proxy 127.0.0.1:5030
+        '';
+      };
+    };
+  };
+
+  services.slskd = {
+    enable = true;
+    openFirewall = true;
+    domain = null;
+    user = "slskd";
+    group = "slskd";
+    environmentFile = "/etc/slskd/credentials.env";
+    settings = {
+      directories = {
+        downloads = "/var/lib/slskd/music/downloads";
+        incomplete = "/var/lib/slskd/music/incompleted";
+      };
+      shares = {
+        directories = ["/var/lib/slskd/music/share"];
+      };
+      soulseek = {
+        listen_port = 50300;
+      };
+      web = {
+        port = 5030;
+        authentication = {
+          enabled = true;
+        };
+      };
+      global = {
+        upload.slots = 10;
+        download.slots = 10;
+      };
+    };
   };
 
   networking = {
@@ -34,6 +116,10 @@
         80
         443
         3000
+        3001 # Immich UI
+        2283 # Immich API
+        5030
+        50300
       ];
     };
   };
@@ -60,6 +146,7 @@
   environment.systemPackages = with pkgs; [
     git
     vim
+    tree
   ];
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
@@ -94,10 +181,34 @@
     users.root.openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
     ];
+
+    users.slskd = {
+      isSystemUser = true;
+      group = "slskd";
+      home = "/var/lib/slskd";
+      createHome = true;
+    };
   };
+
+  users.groups.slskd = {};
 
   services.ollama = {
     enable = false; # not for now, we need more gpu in some way
+  };
+
+  services.immich = {
+    enable = false; # disable for now
+
+    settings = {
+      server = {
+        host = "0.0.0.0"; # frontend
+        port = 3001;
+      };
+      api = {
+        host = "0.0.0.0";
+        port = 2283;
+      };
+    };
   };
 
   home-manager = {
