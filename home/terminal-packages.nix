@@ -8,7 +8,6 @@ with pkgs; [
   # lsv
   # rff
   aider-chat
-  flyctl
   appimage-run
   astro-language-server
   atool
@@ -50,18 +49,19 @@ with pkgs; [
   evtest
   eza
   fastfetch
-  hcloud
   fd
   fennel-ls
   ffmpeg
   fish
   fixjson
+  flyctl
   frogmouth
   fx
   fzf
   fzy
   gcalcli
   gcc
+  gdrive
   gh
   git-cliff
   git-commit-search
@@ -74,6 +74,7 @@ with pkgs; [
   gping
   gst_all_1.gstreamer
   haralyzer
+  hcloud
   htmlq
   htop
   hyprland-workspaces
@@ -137,6 +138,7 @@ with pkgs; [
   python314Packages.huggingface-hub
   python3Packages.python-lsp-server
   rabbitmqadmin-ng
+  rclone
   repgrep
   ripgrep
   ruby

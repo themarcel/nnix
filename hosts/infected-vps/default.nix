@@ -4,8 +4,7 @@
   lib,
   inputs,
   ...
-}:
-{
+}: {
   imports = [
     ./hardware-configuration.nix
     ./disk-config.nix
@@ -25,6 +24,16 @@
         reverse_proxy 127.0.0.1:3000
       '';
     };
+  };
+
+  services.ollama = {
+    enable = true;
+  };
+
+  systemd.services.ollama.environment = {
+    OLLAMA_CONTEXT_LENGTH = "32768";
+    OLLAMA_FLASH_ATTENTION = "1";
+    OLLAMA_KEEP_ALIVE = "24h";
   };
 
   networking = {
@@ -71,7 +80,7 @@
   users = {
     users.dev = {
       isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      extraGroups = ["wheel"];
       packages = with pkgs; [
         git
       ];
@@ -90,12 +99,10 @@
       inherit (inputs) nvim;
       inherit pkgs;
     };
-    users.dev =
-      { lib, ... }:
-      {
-        home.stateVersion = "24.11";
-        imports = [ inputs.nvim.homeManagerModules.default ];
-      };
+    users.dev = {lib, ...}: {
+      home.stateVersion = "24.11";
+      imports = [inputs.nvim.homeManagerModules.default];
+    };
   };
 
   system.stateVersion = "24.11";
