@@ -1,11 +1,8 @@
-{
-  pkgs,
-  ...
-}: let
-  terminalPackages = import ./terminal-packages.nix { inherit pkgs; };
+{pkgs, ...}: let
+  terminalPackages = import ./terminal-packages.nix {inherit pkgs;};
 in {
   environment.packages = terminalPackages;
-  
+
   environment.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
@@ -14,6 +11,6 @@ in {
     OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
-  
+
   user.shell = "${pkgs.fish}/bin/fish";
 }

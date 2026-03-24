@@ -1,5 +1,10 @@
-{ config, pkgs, pkgsStable, ... }:
-let homeDir = config.home.homeDirectory;
+{
+  config,
+  pkgs,
+  pkgsStable,
+  ...
+}: let
+  homeDir = config.home.homeDirectory;
 in {
   programs.firefox = {
     package = config.lib.nixGL.wrap pkgs.firefox;
@@ -32,7 +37,6 @@ in {
     ".cargo/env.nu".source = link "${dots}/.cargo/env.nu";
     ".config/hypr/devices/WS0277.conf".source =
       link "${dots}/.config/hypr/devices/WS0277.conf";
-    ".mozilla/native-messaging-hosts/passff.json".source =
-      "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
+    ".mozilla/native-messaging-hosts/passff.json".source = "${pkgs.passff-host}/lib/mozilla/native-messaging-hosts/passff.json";
   };
 }

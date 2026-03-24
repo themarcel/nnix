@@ -147,7 +147,10 @@ with pkgs; [
   shellcheck
   shfmt
   slskd
+  slsk-batchdl
+  rmpc
   socat
+  mpc
   solargraph
   sox
   speedtest-cli

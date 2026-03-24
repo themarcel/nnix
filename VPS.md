@@ -10,9 +10,9 @@
 
 ## Configuration Files
 
-- **`hosts/infected-vps/default.nix`** - Main NixOS configuration
-- **`hosts/infected-vps/disk-config.nix`** - Disk partitioning layout
-- **`hosts/infected-vps/hardware-configuration.nix`** - Hardware config (generated during install)
+- **`hosts/vps/default.nix`** - Main NixOS configuration
+- **`hosts/vps/disk-config.nix`** - Disk partitioning layout
+- **`hosts/vps/hardware-configuration.nix`** - Hardware config (generated during install)
 
 ## Disk Configuration
 
@@ -36,7 +36,7 @@ nix flake lock
 ### 2. Test the configuration locally (optional but recommended)
 
 ```bash
-nix run github:nix-community/nixos-anywhere -- --flake .#infected-vps --vm-test
+nix run github:nix-community/nixos-anywhere -- --flake .#vps --vm-test
 ```
 
 ### 3. Deploy to VPS
@@ -45,10 +45,10 @@ nix run github:nix-community/nixos-anywhere -- --flake .#infected-vps --vm-test
 
 ```bash
 nix run github:nix-community/nixos-anywhere -- \
-  --flake .#infected-vps \
+  --flake .#vps \
   --target-host root@<VPS_IP> \
   -i ~/.ssh/public_vps_ssh_key \
-  --generate-hardware-config nixos-generate-config ./hosts/infected-vps/hardware-configuration.nix
+  --generate-hardware-config nixos-generate-config ./hosts/vps/hardware-configuration.nix
 ```
 
 Replace `<VPS_IP>` with your VPS's IP address and ~/.ssh/public_vps_ssh_key with the real private key
@@ -59,7 +59,7 @@ After the initial deployment, you can update the VPS without regenerating hardwa
 
 ```bash
 nix run github:nix-community/nixos-anywhere -- \
-  --flake .#infected-vps \
+  --flake .#vps \
   --target-host root@<VPS_IP> \
   -i ~/.ssh/public_vps_ssh_key
 ```
@@ -90,5 +90,5 @@ Once deployed, services will be available:
 To update the VPS configuration after deployment:
 
 ```bash
-nixos-rebuild switch --flake .#infected-vps --target-host root@<VPS_IP>
+nixos-rebuild switch --flake .#vps --target-host root@<VPS_IP>
 ```

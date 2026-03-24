@@ -48,6 +48,29 @@
     enable = true;
   };
 
+  services.mpd = {
+    enable = true;
+    musicDirectory = "/home/marcel/techno-electronica/";
+    user = "marcel";
+    startWhenNeeded = true;
+    settings = {
+      audio_output = [
+        {
+          type = "pipewire";
+          name = "PipeWire Output";
+        }
+      ];
+    };
+
+    # Optional:
+    # network.listenAddress = "any"; # if you want to allow non-localhost connections
+    # network.startWhenNeeded = true; # systemd feature: only start MPD service upon connection to its socket
+  };
+
+  systemd.services.mpd.environment = {
+    XDG_RUNTIME_DIR = "/run/user/1000";
+  };
+
   # TODO: Learn how to setup cachix auto push
   # Option 1:
   # services.cachix-agent.enable = true;
@@ -240,8 +263,8 @@
   # services.xserver.libinput.enable = true;
 
   security = {
-    # If enabled, pam_wallet will attempt to automatically unlock the user’s default KDE wallet upon login.
-    # If the user has no wallet named “kdewallet”, or the login password does not match their wallet password,
+    # If enabled, pam_wallet will attempt to automatically unlock the user's default KDE wallet upon login.
+    # If the user has no wallet named "kdewallet", or the login password does not match their wallet password,
     # KDE will prompt separately after login.
     pam = {
       services = {
@@ -250,6 +273,10 @@
             enable = true;
             package = pkgs.kdePackages.kwallet-pam;
           };
+        };
+        # Add GNOME keyring support for KDE applications
+        login = {
+          enableGnomeKeyring = true;
         };
       };
     };
@@ -271,6 +298,11 @@
       #  thunderbird
     ];
   };
+
+  services.dbus.enable = true;
+  # Use KWallet instead of GNOME keyring for KDE Plasma
+  services.gnome.gnome-keyring.enable = false;
+  programs.seahorse.enable = true;
 
   services.displayManager = {
     sddm = {
