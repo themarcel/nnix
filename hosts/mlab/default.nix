@@ -64,6 +64,7 @@
     username = "token";
     passwordFile = "/var/lib/ddclient/cloudflare-token";
     domains = ["ssh.marcel.cool"];
+    usev4 = "webv4, webv4=cloudflare";
     ssl = true;
   };
 
@@ -209,6 +210,10 @@
       KbdInteractiveAuthentication = false;
       AllowAgentForwarding = true;
     };
+    extraConfig = ''
+      Match User josep
+        PasswordAuthentication yes
+    '';
   };
 
   environment.systemPackages = with pkgs; [
@@ -246,6 +251,9 @@
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
       ];
+    };
+    users.josep = {
+      isNormalUser = true;
     };
 
     users.root = {

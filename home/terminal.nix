@@ -68,6 +68,14 @@ in {
         };
       };
       "mlab" = {
+        hostname = "ssh.marcel.cool";
+        user = "root";
+        identityFile = "~/.ssh/mlab_key";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
+      "mlab-local" = {
         hostname = "192.168.1.199";
         user = "root";
         identityFile = "~/.ssh/mlab_key";
