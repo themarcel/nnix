@@ -189,7 +189,6 @@
       inherit system pkgs;
       specialArgs = {inherit inputs;};
       modules = [
-        disko.nixosModules.disko
         ./hosts/mlab/default.nix
       ];
     };

@@ -7,7 +7,6 @@
 }: {
   imports = [
     ./hardware-configuration.nix
-    ./disk-config.nix
     inputs.home-manager.nixosModules.home-manager
   ];
 
@@ -57,40 +56,66 @@
     port = 3000;
   };
 
-  services.caddy = {
+  services.ddclient = {
     enable = true;
-    virtualHosts."ai.marcel.cool" = {
-      extraConfig = ''
-        reverse_proxy 127.0.0.1:3000
-      '';
-    };
-    virtualHosts = {
-      # "photos.marcel.cool" = {
-      #   extraConfig = ''
-      #     @api path /api/*
-      #     reverse_proxy @api 127.0.0.1:2283
-      #     reverse_proxy 127.0.0.1:3001
-      #   '';
-      # };
-      # "photos-server.marcel.cool" = {
-      #   extraConfig = ''
-      #     @api path /api/*
-      #     reverse_proxy @api 127.0.0.1:2283
-      #     reverse_proxy 127.0.0.1:3001
-      #   '';
-      # };
-      "slskd.marcel.cool" = {
-        extraConfig = ''
-          reverse_proxy 127.0.0.1:5030
-        '';
-      };
-      "music.marcel.cool" = {
-        extraConfig = ''
-          reverse_proxy 127.0.0.1:4533
-        '';
+    interval = "5min";
+    protocol = "cloudflare";
+    zone = "marcel.cool";
+    username = "token";
+    passwordFile = "/var/lib/ddclient/cloudflare-token";
+    domains = ["ssh.marcel.cool"];
+    ssl = true;
+  };
+
+  services.cloudflared = {
+    enable = true;
+    tunnels = {
+      "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
+        credentialsFile = "/var/lib/cloudflared/tunnel.json";
+        default = "http_status:404";
+        ingress = {
+          "ai.marcel.cool" = "http://127.0.0.1:3000";
+          "music.marcel.cool" = "http://127.0.0.1:4533";
+          "slskd.marcel.cool" = "http://127.0.0.1:5030";
+        };
       };
     };
   };
+
+  # services.caddy = {
+  #   enable = true;
+  #   virtualHosts."ai.marcel.cool" = {
+  #     extraConfig = ''
+  #       reverse_proxy 127.0.0.1:3000
+  #     '';
+  #   };
+  #   virtualHosts = {
+  #     # "photos.marcel.cool" = {
+  #     #   extraConfig = ''
+  #     #     @api path /api/*
+  #     #     reverse_proxy @api 127.0.0.1:2283
+  #     #     reverse_proxy 127.0.0.1:3001
+  #     #   '';
+  #     # };
+  #     # "photos-server.marcel.cool" = {
+  #     #   extraConfig = ''
+  #     #     @api path /api/*
+  #     #     reverse_proxy @api 127.0.0.1:2283
+  #     #     reverse_proxy 127.0.0.1:3001
+  #     #   '';
+  #     # };
+  #     "slskd.marcel.cool" = {
+  #       extraConfig = ''
+  #         reverse_proxy 127.0.0.1:5030
+  #       '';
+  #     };
+  #     "music.marcel.cool" = {
+  #       extraConfig = ''
+  #         reverse_proxy 127.0.0.1:4533
+  #       '';
+  #     };
+  #   };
+  # };
 
   services.slskd = {
     enable = true;
