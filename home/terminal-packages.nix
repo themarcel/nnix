@@ -2,20 +2,22 @@
 {pkgs}:
 with pkgs; [
   # helix
+  # helix
+  # libreoffice
   # libreoffice
   # lsv
-  flyctl
+  # rff
+  aider-chat
   appimage-run
-  passff-host
   astro-language-server
   atool
   atuin
   bacon
-  beets
   bash
   bash-language-server
   bash-preexec
   bat
+  beets
   bind
   biome
   black
@@ -27,9 +29,12 @@ with pkgs; [
   chafa
   charm-freeze
   clang-tools
+  clang-tools
   claude-code
   codex
   cowsay
+  cowsay
+  csvlens
   csvlens
   delta
   deno
@@ -44,32 +49,36 @@ with pkgs; [
   evtest
   eza
   fastfetch
-  hcloud
-  keyutils
   fd
   fennel-ls
   ffmpeg
   fish
   fixjson
+  flyctl
   frogmouth
   fx
   fzf
   fzy
   gcalcli
   gcc
+  gdrive
   gh
   git-cliff
   git-commit-search
   gitFull
   glirc
+  glirc
   glow
   gnumake
   google-cloud-sdk-gce
   gping
+  gst_all_1.gstreamer
   haralyzer
+  hcloud
+  htmlq
   htop
   hyprland-workspaces
-  imagemagick_light
+  imagemagick
   iptables
   jaq
   java-language-server
@@ -87,11 +96,14 @@ with pkgs; [
   marksman
   mdformat
   mdwatch
+  mdwatch
+  mdx-language-server
   mediainfo
   moor
   murex
   ncdu
   neovim
+  newsboat
   nftables
   nil
   nix-diff
@@ -111,6 +123,7 @@ with pkgs; [
   pamixer
   parted
   pass
+  passff-host
   patchutils
   pfetch
   playerctl
@@ -119,17 +132,19 @@ with pkgs; [
   prettierd
   prettierd
   pulseaudio-next-output
+  pulseaudio-next-output
   pulseaudioFull
+  pwgen
+  python314Packages.huggingface-hub
   python3Packages.python-lsp-server
   rabbitmqadmin-ng
+  rclone
   repgrep
-  # rff
-  pulseaudio-next-output
   ripgrep
   ruby
   rustup
   sendme
-  clang-tools
+  shellcheck
   shfmt
   slskd
   slsk-batchdl
@@ -148,6 +163,7 @@ with pkgs; [
   starship
   stylua
   sysz
+  tailwindcss-language-server
   taplo
   taskwarrior-tui
   taskwarrior3
@@ -162,10 +178,14 @@ with pkgs; [
   typos-lsp
   typos-lsp
   typst
+  unrar
   unzip
   util-linux
   uv
   v4l-utils
+  v4l-utils
+  vale
+  vale-ls
   vscode-langservers-extracted
   vtsls
   w3m
@@ -181,24 +201,5 @@ with pkgs; [
   zk
   zoxide
   zsh
-  # helix
-  # libreoffice
-  cowsay
-  csvlens
-  v4l-utils
-  gst_all_1.gstreamer
-  glirc
-  mdwatch
   zuban
-  unrar
-  mdx-language-server
-  xmlformat
-  htmlq
-  aider-chat
-  vale
-  vale-ls
-  newsboat
-  shellcheck
-  python314Packages.huggingface-hub
-  pwgen
 ]

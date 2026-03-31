@@ -3,8 +3,6 @@
 
   inputs = {
     mq.url = "github:marcelarie/mq";
-    ki-editor.url = "github:ki-editor/ki-editor";
-    musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     my-nixpkgs.url = "github:marcelarie/nixpkgs";
@@ -36,10 +34,10 @@
       url = "path:./packages/haralyzer";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # foot-fork = {
-    #   url = "git+https://codeberg.org/marcelarie/foot";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    foot-fork = {
+      url = "git+https://codeberg.org/marcelarie/foot?ref=regex-scrollback-search";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zuban.url = "github:marcelarie/zuban";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/release-23.11";
