@@ -35,6 +35,8 @@
     ];
   };
 
+  systemd.services.ddclient.after = ["nss-user-lookup.target"];
+
   services.postgresql = {
     enable = true;
     authentication = lib.mkForce ''
@@ -183,8 +185,6 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [
-        80
-        443
         3000
         3001 # Immich UI
         2283 # Immich API
