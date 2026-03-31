@@ -67,6 +67,14 @@ in {
           IdentitiesOnly = "yes";
         };
       };
+      "mlab" = {
+        hostname = "192.168.1.199";
+        user = "root";
+        identityFile = "~/.ssh/mlab_key";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
     };
   };
 
