@@ -40,8 +40,10 @@
   services.postgresql = {
     enable = true;
     authentication = lib.mkForce ''
-      local all all trust
-      host all all 127.0.0.1/32 trust
+      # TYPE  DATABASE        USER            ADDRESS                 METHOD
+      local   all             all                                     ident
+      host    all             all             127.0.0.1/32            scram-sha-256
+      host    all             all             ::1/128                 scram-sha-256
     '';
     ensureDatabases = ["navidrome"];
     ensureUsers = [
@@ -50,6 +52,14 @@
         ensureDBOwnership = true;
       }
     ];
+    settings = {
+      # rule of thumb: 25% of total ram for shared_buffers
+      shared_buffers = "8GB";
+      effective_cache_size = "24GB";
+      maintenance_work_mem = "2GB";
+      checkpoint_completion_target = 0.9;
+      wal_buffers = "16MB";
+    };
   };
 
   services.open-webui = {
@@ -200,7 +210,11 @@
   boot.tmp.cleanOnBoot = true;
 
   services.logrotate.checkConfig = false;
-  zramSwap.enable = true;
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    memoryPercent = 50;
+  };
 
   services.openssh = {
     enable = true;
@@ -228,10 +242,14 @@
   ];
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
+  nix.settings = {
+    experimental-features = ["nix-command" "flakes"];
+
+    # optimization for 32gb + likely a multi-core cpu
+    auto-optimise-store = true;
+    cores = 0;
+    max-jobs = "auto";
+  };
 
   users = {
     users.dev = {
@@ -283,7 +301,7 @@
   users.groups.navidrome = {};
 
   services.ollama = {
-    enable = false; # not for now, we need more gpu in some way
+    enable = true;
   };
 
   services.immich = {

@@ -3,6 +3,7 @@
 
   inputs = {
     mq.url = "github:marcelarie/mq";
+    musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     my-nixpkgs.url = "github:marcelarie/nixpkgs";
