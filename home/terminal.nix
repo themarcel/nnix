@@ -59,7 +59,7 @@ in {
           IdentitiesOnly = "yes";
         };
       };
-      "marcel-cool-vps" = {
+      "vps" = {
         hostname = "204.168.128.208";
         user = "git";
         identityFile = "~/.ssh/hetzner_ai";

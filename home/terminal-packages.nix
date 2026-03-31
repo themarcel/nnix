@@ -136,6 +136,9 @@ with pkgs; [
   rmpc
   socat
   mpc
+  zeroclaw
+  rich-cli
+  click
   solargraph
   sox
   speedtest-cli
