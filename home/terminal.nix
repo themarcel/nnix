@@ -62,10 +62,26 @@ in {
           IdentitiesOnly = "yes";
         };
       };
-      "marcel-cool-vps" = {
+      "vps" = {
         hostname = "204.168.128.208";
         user = "git";
         identityFile = "~/.ssh/hetzner_ai";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
+      "mlab" = {
+        hostname = "ssh.marcel.cool";
+        user = "root";
+        identityFile = "~/.ssh/mlab_key";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
+      "mlab-local" = {
+        hostname = "192.168.1.199";
+        user = "root";
+        identityFile = "~/.ssh/mlab_key";
         extraOptions = {
           IdentitiesOnly = "yes";
         };

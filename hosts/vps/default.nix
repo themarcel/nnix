@@ -12,6 +12,8 @@
   ];
 
   systemd.tmpfiles.rules = [
+    "d /var/lib/slskd 0755 slskd slskd -"
+    "d /var/lib/slskd/music 0755 slskd slskd -"
     "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
     "d /var/lib/slskd/music/share 0755 slskd slskd -"
@@ -38,7 +40,15 @@
     enable = true;
     authentication = lib.mkForce ''
       local all all trust
+      host all all 127.0.0.1/32 trust
     '';
+    ensureDatabases = ["navidrome"];
+    ensureUsers = [
+      {
+        name = "navidrome";
+        ensureDBOwnership = true;
+      }
+    ];
   };
 
   services.open-webui = {
@@ -72,6 +82,11 @@
       "slskd.marcel.cool" = {
         extraConfig = ''
           reverse_proxy 127.0.0.1:5030
+        '';
+      };
+      "music.marcel.cool" = {
+        extraConfig = ''
+          reverse_proxy 127.0.0.1:4533
         '';
       };
     };
@@ -108,6 +123,35 @@
     };
   };
 
+  services.navidrome = {
+    enable = true;
+    user = "navidrome";
+    group = "navidrome";
+    settings = {
+      DataFolder = "/var/lib/navidrome";
+      Address = "0.0.0.0";
+      Port = 4533;
+      Auth = {
+        Username = "admin";
+        Password = "change-me-please";
+      };
+      MediaFolder = "/var/lib/slskd/music/share";
+      DB = {
+        Type = "postgres";
+        Host = "127.0.0.1";
+        Port = 5432;
+        User = "navidrome";
+        Password = "navidrome-pw";
+        Database = "navidrome";
+        SSLMode = "disable";
+      };
+    };
+  };
+
+  systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [
+    "/var/lib/slskd/music/share"
+  ];
+
   networking = {
     hostName = "marcel-cool-vps";
     firewall = {
@@ -118,8 +162,9 @@
         3000
         3001 # Immich UI
         2283 # Immich API
-        5030
+        5030 # slskd
         50300
+        4533 # Navidrome
       ];
     };
   };
@@ -176,16 +221,15 @@
         starship
         direnv
       ];
-      root = {
-        openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
-        ];
-      };
-      dev = {
-        openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
-        ];
-      };
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+      ];
+    };
+
+    users.root = {
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2bNnjQbOyc2j6yWvDbwfMLdv1Ej6/6QA77C1M05Awv"
+      ];
     };
 
     users.slskd = {
@@ -197,6 +241,16 @@
   };
 
   users.groups.slskd = {};
+
+  users.users.navidrome = {
+    isSystemUser = true;
+    group = "navidrome";
+    extraGroups = ["slskd"];
+    home = "/var/lib/navidrome";
+    createHome = true;
+  };
+
+  users.groups.navidrome = {};
 
   services.ollama = {
     enable = false; # not for now, we need more gpu in some way
