@@ -11,6 +11,7 @@
   ];
 
   systemd.tmpfiles.rules = [
+    "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
     "d /var/lib/slskd/music 0755 slskd slskd -"
     "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
@@ -59,7 +60,17 @@
       maintenance_work_mem = "2GB";
       checkpoint_completion_target = 0.9;
       wal_buffers = "16MB";
+      autovacuum = "on";
+      log_min_duration_statement = 500;
     };
+  };
+
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver # for newer intel igpus
+      intel-compute-runtime # OpenCL
+    ];
   };
 
   services.open-webui = {
@@ -80,6 +91,31 @@
     ssl = true;
   };
 
+  virtualisation.podman.enable = true;
+  virtualisation.oci-containers.backend = "podman";
+
+  virtualisation.oci-containers.containers.soulbeet = {
+    # image = "ghcr.io/terry90/soulbeet:latest";
+    image = "docker.io/docccccc/soulbeet:latest";
+    ports = ["127.0.0.1:9765:9765"];
+    volumes = [
+      "/var/lib/soulbeet:/data"
+      "/var/lib/slskd/music/downloads:/downloads"
+      "/var/lib/slskd/music/share:/music"
+      # optional: mount a custom beets config if you have specific tagging needs
+      # "/etc/soulbeet/beets_config.yaml:/config/config.yaml"
+    ];
+    environment = {
+      DATABASE_URL = "sqlite:/data/soulbeet.db";
+      SLSKD_URL = "http://127.0.0.1:5030";
+      NAVIDROME_URL = "http://127.0.0.1:4533";
+      SLSKD_API_KEY = "J:]DJid-;0^)ene)(7kA[0d<{";
+      SOULBEET_URL = "https://soulbeet.marcel.cool";
+      SECRET_KEY = "generate-a-long-random-string-here";
+    };
+    extraOptions = ["--network=host"]; # allows easy access to local slskd/navidrome
+  };
+
   services.cloudflared = {
     enable = true;
     tunnels = {
@@ -90,6 +126,7 @@
           "ai.marcel.cool" = "http://127.0.0.1:3000";
           "music.marcel.cool" = "http://127.0.0.1:4533";
           "slskd.marcel.cool" = "http://127.0.0.1:5030";
+          "soulbeet.marcel.cool" = "http://127.0.0.1:9765";
         };
       };
     };
@@ -150,8 +187,12 @@
       };
       web = {
         port = 5030;
+        address = "0.0.0.0";
         authentication = {
           enabled = true;
+          api_keys = {
+            soulbeet = "J:]DJid-;0^)ene)(7kA[0d<{";
+          };
         };
       };
       global = {
@@ -169,25 +210,27 @@
       DataFolder = "/var/lib/navidrome";
       Address = "0.0.0.0";
       Port = 4533;
-      Auth = {
-        Username = "admin";
-        Password = "change-me-please";
-      };
-      MediaFolder = "/var/lib/slskd/music/share";
+      MusicFolder = "/var/lib/slskd/music";
       DB = {
         Type = "postgres";
-        Host = "127.0.0.1";
-        Port = 5432;
+        Host = "/run/postgresql";
         User = "navidrome";
-        Password = "navidrome-pw";
         Database = "navidrome";
-        SSLMode = "disable";
       };
+      # DB = {
+      #   Type = "postgres";
+      #   Host = "127.0.0.1";
+      #   Port = 5432;
+      #   User = "navidrome";
+      #   Password = "navidrome-pw";
+      #   Database = "navidrome";
+      #   SSLMode = "disable";
+      # };
     };
   };
 
   systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [
-    "/var/lib/slskd/music/share"
+    "/var/lib/slskd/music"
   ];
 
   networking = {
@@ -201,7 +244,14 @@
         5030 # slskd
         50300
         4533 # Navidrome
+        9765 # Soulbeet
       ];
+      extraCommands = ''
+        # Allow traffic from Podman containers to the host
+        iptables -A INPUT -i podman+ -p tcp --dport 5030 -j ACCEPT
+        iptables -A INPUT -i podman+ -p tcp --dport 4533 -j ACCEPT
+      '';
+      trustedInterfaces = ["podman0"];
     };
   };
 
