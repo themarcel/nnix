@@ -10,6 +10,8 @@
     inputs.home-manager.nixosModules.home-manager
   ];
 
+  time.timeZone = "Europe/Madrid";
+
   systemd.tmpfiles.rules = [
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
