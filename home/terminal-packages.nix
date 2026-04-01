@@ -70,7 +70,11 @@ with pkgs; [
   glirc
   glow
   gnumake
-  google-cloud-sdk-gce
+  (pkgs.google-cloud-sdk.withExtraComponents (
+    with pkgs.google-cloud-sdk.components; [
+      gke-gcloud-auth-plugin
+    ]
+  ))
   gping
   gst_all_1.gstreamer
   haralyzer
@@ -86,6 +90,8 @@ with pkgs; [
   jujutsu
   just
   killall
+  kubectl
+  kubectx
   lazygit
   libnotify
   librespeed-cli
