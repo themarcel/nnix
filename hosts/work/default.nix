@@ -24,6 +24,7 @@ in {
     (config.lib.nixGL.wrap freetube)
     (config.lib.nixGL.wrap nautilus)
     (config.lib.nixGL.wrap mermaid-cli)
+    (config.lib.nixGL.wrap aonsoku)
   ];
 
   home.file = let
