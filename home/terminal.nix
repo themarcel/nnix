@@ -19,6 +19,9 @@ in {
     OPENSSL_DIR = "${pkgs.openssl.out}";
     OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
+    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+    PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = "true";
+    USE_GKE_GCLOUD_AUTH_PLUGIN = "True";
   };
 
   services.ollama = {
@@ -36,6 +39,7 @@ in {
       jdd
       sops
       age
+      playwright-driver.browsers
     ]);
 
   programs.ssh = {
@@ -210,5 +214,10 @@ in {
       source = link notes;
       recursive = true;
     };
+
+    # ".kube" = {
+    #   source = link "${dots}/.kube";
+    #   recursive = true;
+    # };
   };
 }
