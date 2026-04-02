@@ -10,6 +10,8 @@
     inputs.home-manager.nixosModules.home-manager
   ];
 
+  time.timeZone = "Europe/Madrid";
+
   systemd.tmpfiles.rules = [
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
@@ -95,23 +97,23 @@
   virtualisation.oci-containers.backend = "podman";
 
   virtualisation.oci-containers.containers.soulbeet = {
-    # image = "ghcr.io/terry90/soulbeet:latest";
     image = "docker.io/docccccc/soulbeet:latest";
-    ports = ["127.0.0.1:9765:9765"];
     volumes = [
       "/var/lib/soulbeet:/data"
-      "/var/lib/slskd/music/downloads:/downloads"
+      "/var/lib/slskd/music/downloads:/var/lib/slskd/music/downloads"
       "/var/lib/slskd/music/share:/music"
       # optional: mount a custom beets config if you have specific tagging needs
       # "/etc/soulbeet/beets_config.yaml:/config/config.yaml"
     ];
     environment = {
       DATABASE_URL = "sqlite:/data/soulbeet.db";
+      DOWNLOAD_PATH = "/var/lib/slskd/music/downloads";
       SLSKD_URL = "http://127.0.0.1:5030";
       NAVIDROME_URL = "http://127.0.0.1:4533";
       SLSKD_API_KEY = "J:]DJid-;0^)ene)(7kA[0d<{";
       SOULBEET_URL = "https://soulbeet.marcel.cool";
       SECRET_KEY = "generate-a-long-random-string-here";
+      NAVIDROME_MUSIC_PATH = "/var/lib/slskd/music/share";
     };
     extraOptions = ["--network=host"]; # allows easy access to local slskd/navidrome
   };
@@ -131,41 +133,6 @@
       };
     };
   };
-
-  # services.caddy = {
-  #   enable = true;
-  #   virtualHosts."ai.marcel.cool" = {
-  #     extraConfig = ''
-  #       reverse_proxy 127.0.0.1:3000
-  #     '';
-  #   };
-  #   virtualHosts = {
-  #     # "photos.marcel.cool" = {
-  #     #   extraConfig = ''
-  #     #     @api path /api/*
-  #     #     reverse_proxy @api 127.0.0.1:2283
-  #     #     reverse_proxy 127.0.0.1:3001
-  #     #   '';
-  #     # };
-  #     # "photos-server.marcel.cool" = {
-  #     #   extraConfig = ''
-  #     #     @api path /api/*
-  #     #     reverse_proxy @api 127.0.0.1:2283
-  #     #     reverse_proxy 127.0.0.1:3001
-  #     #   '';
-  #     # };
-  #     "slskd.marcel.cool" = {
-  #       extraConfig = ''
-  #         reverse_proxy 127.0.0.1:5030
-  #       '';
-  #     };
-  #     "music.marcel.cool" = {
-  #       extraConfig = ''
-  #         reverse_proxy 127.0.0.1:4533
-  #       '';
-  #     };
-  #   };
-  # };
 
   services.slskd = {
     enable = true;
@@ -191,7 +158,9 @@
         authentication = {
           enabled = true;
           api_keys = {
-            soulbeet = "J:]DJid-;0^)ene)(7kA[0d<{";
+            soulbeet = {
+              key = "J:]DJid-;0^)ene)(7kA[0d<{";
+            };
           };
         };
       };
@@ -210,27 +179,18 @@
       DataFolder = "/var/lib/navidrome";
       Address = "0.0.0.0";
       Port = 4533;
-      MusicFolder = "/var/lib/slskd/music";
+      MusicFolder = "/var/lib/slskd/music/share";
       DB = {
         Type = "postgres";
         Host = "/run/postgresql";
         User = "navidrome";
         Database = "navidrome";
       };
-      # DB = {
-      #   Type = "postgres";
-      #   Host = "127.0.0.1";
-      #   Port = 5432;
-      #   User = "navidrome";
-      #   Password = "navidrome-pw";
-      #   Database = "navidrome";
-      #   SSLMode = "disable";
-      # };
     };
   };
 
   systemd.services.navidrome.serviceConfig.BindReadOnlyPaths = [
-    "/var/lib/slskd/music"
+    "/var/lib/slskd/music/share"
   ];
 
   networking = {
@@ -266,6 +226,7 @@
     memoryPercent = 50;
   };
 
+  security.pam.services.sshd.unixAuth = lib.mkForce true;
   services.openssh = {
     enable = true;
     settings = {
@@ -277,6 +238,7 @@
     extraConfig = ''
       Match User josep
         PasswordAuthentication yes
+        KbdInteractiveAuthentication yes
     '';
   };
 
@@ -293,7 +255,10 @@
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix.settings = {
-    experimental-features = ["nix-command" "flakes"];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     # optimization for 32gb + likely a multi-core cpu
     auto-optimise-store = true;
@@ -322,6 +287,7 @@
     };
     users.josep = {
       isNormalUser = true;
+      hashedPassword = "$6$yYO0AEDC4Zvci6X9$nofbSfupt55MYH/dZ9ceWrGqCl7xg88UnUOPECmJlbybWQDkgKfousAGYfw7Npy4PtWQoYIfKntSa/QBMzeMv1";
     };
 
     users.root = {
