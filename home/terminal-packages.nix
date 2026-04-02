@@ -1,6 +1,7 @@
 # Shared cli only package list for both home-manager and nix-on-droid
-{pkgs}:
-with pkgs; [
+{ pkgs }:
+with pkgs;
+[
   # helix
   # helix
   # libreoffice
@@ -110,7 +111,7 @@ with pkgs; [
   nix-search-cli
   nixfmt
   nnn
-  nodePackages.prettier
+  prettier
   nodejs_22
   noisetorch
   nuit

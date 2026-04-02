@@ -6,3 +6,6 @@ deploy-vps:
 
 deploy-mlab:
 	nixos-rebuild switch  --flake .#mlab --target-host root@mlab
+
+deploy-mlab-local:
+	nixos-rebuild switch  --flake .#mlab --target-host root@mlab-local

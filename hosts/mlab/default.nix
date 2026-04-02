@@ -215,9 +215,13 @@
     };
   };
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.tmp.cleanOnBoot = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+    tmp.cleanOnBoot = true;
+  };
 
   services.logrotate.checkConfig = false;
   zramSwap = {
@@ -251,7 +255,17 @@
     jq
     ripgrep
     tmux
+    (writeShellScriptBin "import-music" ''
+      if [ -z "$1" ]; then
+        echo "No specific folder provided. Importing EVERYTHING in downloads..."
+        sudo podman exec -it soulbeet beet import /var/lib/slskd/music/downloads
+      else
+        echo "Importing: $1"
+        sudo podman exec -it soulbeet beet import "/var/lib/slskd/music/downloads/$1"
+      fi
+    '')
   ];
+
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix.settings = {
@@ -289,7 +303,6 @@
       isNormalUser = true;
       hashedPassword = "$6$yYO0AEDC4Zvci6X9$nofbSfupt55MYH/dZ9ceWrGqCl7xg88UnUOPECmJlbybWQDkgKfousAGYfw7Npy4PtWQoYIfKntSa/QBMzeMv1";
     };
-
     users.root = {
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
