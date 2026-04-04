@@ -14,6 +14,53 @@
 
   programs.mosh.enable = true;
 
+  sops = {
+    defaultSopsFile = ../../secrets/mlab.yaml;
+    age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+
+    secrets = {
+      "slsk_user" = {};
+      "slsk_pass" = {};
+      "web_user" = {};
+      "web_pass" = {};
+      "app_user" = {};
+      "app_pass" = {};
+      "josep_password" = {neededForUsers = true;};
+      "cloudflare_ddclient_token" = {
+        owner = "ddclient";
+        group = "ddclient";
+      };
+      "slskd_api_key" = {};
+      "soulbeet_secret_key" = {};
+      "cloudflared_tunnel_json" = {
+        owner = "cloudflared";
+        group = "cloudflared";
+      };
+    };
+
+    templates."tunnel.json" = {
+      content = config.sops.placeholder.cloudflared_tunnel_json;
+      owner = "cloudflared";
+      group = "cloudflared";
+    };
+
+    templates."slskd-mlab.env" = {
+      content = ''
+        SLSKD_SLSK_USERNAME='${config.sops.placeholder.slsk_user}'
+        SLSKD_SLSK_PASSWORD='${config.sops.placeholder.slsk_pass}'
+
+        SLSKD_USERNAME='${config.sops.placeholder.web_user}'
+        SLSKD_PASSWORD='${config.sops.placeholder.web_pass}'
+
+        SLSKD_WEB_USERNAME=${config.sops.placeholder.web_user}
+        SLSKD_WEB_PASSWORD=${config.sops.placeholder.web_pass}
+
+        SLSKD_WEB__AUTHENTICATION__APIKEYS__SOULBEET__KEY='${config.sops.placeholder.slskd_api_key}'
+      '';
+      owner = "slskd";
+    };
+  };
+
   services.nginx = {
     enable = true;
     virtualHosts."_" = {
@@ -40,6 +87,7 @@
     "d /var/lib/slskd/music/share 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
   ];
+  systemd.services.ddclient.after = ["nss-user-lookup.target"];
 
   systemd.services.slskd.serviceConfig = {
     ProtectSystem = lib.mkForce false;
@@ -56,8 +104,6 @@
       "/etc/slskd"
     ];
   };
-
-  systemd.services.ddclient.after = ["nss-user-lookup.target"];
 
   services.postgresql = {
     enable = true;
@@ -106,7 +152,7 @@
     protocol = "cloudflare";
     zone = "marcel.cool";
     username = "token";
-    passwordFile = "/var/lib/ddclient/cloudflare-token";
+    passwordFile = config.sops.secrets.cloudflare_ddclient_token.path;
     domains = ["ssh.marcel.cool"];
     usev4 = "webv4, webv4=cloudflare";
     ssl = true;
@@ -114,6 +160,24 @@
 
   virtualisation.podman.enable = true;
   virtualisation.oci-containers.backend = "podman";
+
+  sops.templates."soulbeet.env".content = ''
+    # Connection to Slskd
+    SLSKD_URL=http://127.0.0.1:5030
+    SLSKD_API_KEY=${config.sops.placeholder.slskd_api_key}
+
+    # Connection to Navidrome
+    NAVIDROME_URL=http://127.0.0.1:4533
+    NAVIDROME_USERNAME=${config.sops.placeholder.web_user}
+    NAVIDROME_PASSWORD=${config.sops.placeholder.web_pass}
+
+    # Soulbeet Internal
+    SECRET_KEY=${config.sops.placeholder.soulbeet_secret_key}
+    DATABASE_URL=sqlite:/data/soulbeet.db
+    DOWNLOAD_PATH=/var/lib/slskd/music/downloads
+    NAVIDROME_MUSIC_PATH=/music
+    SOULBEET_URL=https://soulbeet.marcel.cool
+  '';
 
   virtualisation.oci-containers.containers.soulbeet = {
     image = "docker.io/docccccc/soulbeet:latest";
@@ -124,16 +188,9 @@
       # optional: mount a custom beets config if you have specific tagging needs
       # "/etc/soulbeet/beets_config.yaml:/config/config.yaml"
     ];
-    environment = {
-      DATABASE_URL = "sqlite:/data/soulbeet.db";
-      DOWNLOAD_PATH = "/var/lib/slskd/music/downloads";
-      SLSKD_URL = "http://127.0.0.1:5030";
-      NAVIDROME_URL = "http://127.0.0.1:4533";
-      SLSKD_API_KEY = "J:]DJid-;0^)ene)(7kA[0d<{";
-      SOULBEET_URL = "https://soulbeet.marcel.cool";
-      SECRET_KEY = "generate-a-long-random-string-here";
-      NAVIDROME_MUSIC_PATH = "/var/lib/slskd/music/share";
-    };
+    environmentFiles = [
+      config.sops.templates."soulbeet.env".path
+    ];
     extraOptions = ["--network=host"]; # allows easy access to local slskd/navidrome
   };
 
@@ -141,7 +198,7 @@
     enable = true;
     tunnels = {
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
-        credentialsFile = "/var/lib/cloudflared/tunnel.json";
+        credentialsFile = config.sops.templates."tunnel.json".path;
         default = "http://127.0.0.1:80";
         ingress = {
           "ai.marcel.cool" = "http://127.0.0.1:3000";
@@ -159,7 +216,7 @@
     domain = null;
     user = "slskd";
     group = "slskd";
-    environmentFile = "/etc/slskd/credentials.env";
+    environmentFile = config.sops.templates."slskd-mlab.env".path;
     settings = {
       directories = {
         downloads = "/var/lib/slskd/music/downloads";
@@ -176,11 +233,6 @@
         address = "0.0.0.0";
         authentication = {
           enabled = true;
-          api_keys = {
-            soulbeet = {
-              key = "J:]DJid-;0^)ene)(7kA[0d<{";
-            };
-          };
         };
       };
       global = {
@@ -327,7 +379,7 @@
     };
     users.josep = {
       isNormalUser = true;
-      hashedPassword = "$6$yYO0AEDC4Zvci6X9$nofbSfupt55MYH/dZ9ceWrGqCl7xg88UnUOPECmJlbybWQDkgKfousAGYfw7Npy4PtWQoYIfKntSa/QBMzeMv1";
+      hashedPasswordFile = config.sops.secrets.josep_password.path;
     };
     users.root = {
       openssh.authorizedKeys.keys = [
@@ -341,19 +393,29 @@
       home = "/var/lib/slskd";
       createHome = true;
     };
+    groups.slskd = {};
+
+    users.cloudflared = {
+      isSystemUser = true;
+      group = "cloudflared";
+    };
+    groups.cloudflared = {};
+
+    users.navidrome = {
+      isSystemUser = true;
+      group = "navidrome";
+      extraGroups = ["slskd"];
+      home = "/var/lib/navidrome";
+      createHome = true;
+    };
+    groups.navidrome = {};
+
+    users.ddclient = {
+      isSystemUser = true;
+      group = "ddclient";
+    };
+    groups.ddclient = {};
   };
-
-  users.groups.slskd = {};
-
-  users.users.navidrome = {
-    isSystemUser = true;
-    group = "navidrome";
-    extraGroups = ["slskd"];
-    home = "/var/lib/navidrome";
-    createHome = true;
-  };
-
-  users.groups.navidrome = {};
 
   services.ollama = {
     enable = true;

@@ -1,7 +1,8 @@
 keys:
   - &admin "age1fnjmv5z9g293eulh94dpcmuv6d9ucnlnympjad9mj9vu8809zg6q92caf0"
   - &work "age1qpdnzqwqlkss4sqqjyzc0tr5gqkxsv982ux7x0ccrza7tnj2redqq0kyee"
-  - &nixos "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINNK6mhge9n/+JnFRhh4VegAoK4jDY+9nk0FmyApvWS8 root@nixos"
+  - &nixos "age109htxlxuauqwwwdfmnuv9v0s2x07q4y5m79gnjy649jtg9664dxsy5pch2"
+  - &mlab "age13czwzvmu95vhaszju7hgagm6v24lg7pd874dxzyw9y04crzpacwsrsw8qf"
 
 creation_rules:
   - path_regex: secrets/work\.yaml$
@@ -15,3 +16,9 @@ creation_rules:
       - age:
           - *admin
           - *nixos
+
+  - path_regex: secrets/mlab\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *mlab

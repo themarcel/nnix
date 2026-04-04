@@ -23,6 +23,7 @@ in {
     brightnessctl
     cliphist
     dejavu_fonts
+    nicotine-plus
     dmenu-wayland
     eww
     fira-sans

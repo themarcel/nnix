@@ -1,3 +1,5 @@
 
-- [ ] Setup SOPS properly
-    - [ ] Setup passwords for vps apps via sops
+- [ ] Fix Soulbeet
+
+- [x] Setup SOPS properly
+    - [x] Setup passwords for vps apps via sops

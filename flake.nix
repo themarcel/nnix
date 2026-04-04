@@ -188,6 +188,7 @@
       inherit system pkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        inputs.sops-nix.nixosModules.sops
         ./hosts/mlab/default.nix
       ];
     };

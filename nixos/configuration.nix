@@ -31,12 +31,12 @@
       "https://nix-community.cachix.org"
       "https://cache.nixos.org"
       # "https://hyprland.cachix.org"
-      # "https://marcelarie.cachix.org"
+      "https://marcelarie.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      # "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+      "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
     ];
     trusted-users = [
       "root"
@@ -176,7 +176,6 @@
     "d /home/${username}/music/downloads 0755 ${username} users -"
     "d /home/${username}/music/incompleted 0755 ${username} users -"
     "d /home/${username}/music/share 0755 ${username} users -"
-    "f /run/slskd.env 0600 ${username} users -"
   ];
 
   services.slskd = {
@@ -185,7 +184,7 @@
     domain = null;
     user = username;
     group = "users";
-    environmentFile = "/run/slskd.env";
+    environmentFile = config.sops.templates."slskd.env".path;
     settings = {
       directories = {
         downloads = "/home/${username}/music/downloads";
@@ -373,14 +372,27 @@
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "slskd_secrets" = {
-        format = "dotenv";
-        sopsFile = ../secrets/nixos.yaml;
-        owner = username;
-      };
-      "cachix_token" = {
-        owner = username;
-      };
+      "SLSKD_SLSK_USERNAME" = {owner = username;};
+      "SLSKD_SLSK_PASSWORD" = {owner = username;};
+      "SLSKD_SOULSEEK_PASSWORD" = {owner = username;};
+      "SLSKD_WEB_USERNAME" = {owner = username;};
+      "SLSKD_WEB_PASSWORD" = {owner = username;};
+      "SLSKD_USERNAME" = {owner = username;};
+      "SLSKD_PASSWORD" = {owner = username;};
+      "cachix_token" = {owner = username;};
+    };
+
+    templates."slskd.env" = {
+      content = ''
+        SLSKD_SLSK_USERNAME="${config.sops.placeholder.SLSKD_SLSK_USERNAME}"
+        SLSKD_SLSK_PASSWORD="${config.sops.placeholder.SLSKD_SLSK_PASSWORD}"
+        SLSKD_SOULSEEK_PASSWORD="${config.sops.placeholder.SLSKD_SOULSEEK_PASSWORD}"
+        SLSKD_WEB_USERNAME="${config.sops.placeholder.SLSKD_WEB_USERNAME}"
+        SLSKD_WEB_PASSWORD="${config.sops.placeholder.SLSKD_WEB_PASSWORD}"
+        SLSKD_USERNAME="${config.sops.placeholder.SLSKD_USERNAME}"
+        SLSKD_PASSWORD="${config.sops.placeholder.SLSKD_PASSWORD}"
+      '';
+      owner = username;
     };
   };
 
