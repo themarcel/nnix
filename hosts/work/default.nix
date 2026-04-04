@@ -27,6 +27,14 @@ in {
     (config.lib.nixGL.wrap aonsoku)
   ];
 
+  sops = {
+    defaultSopsFile = ../../secrets/work.yaml;
+    defaultSopsFormat = "yaml";
+    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+
+    secrets.work_api_token = {};
+  };
+
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
     clonesOwn = "${homeDir}/clones/own";

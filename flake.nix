@@ -161,7 +161,7 @@
         ./nixos/configuration.nix
         ./nixos/hardware-configuration.nix
         inputs.musnix.nixosModules.musnix
-        # inputs.sops-nix.nixosModules.sops
+        inputs.sops-nix.nixosModules.sops
         home-manager.nixosModules.home-manager
         {
           home-manager = {
@@ -197,6 +197,7 @@
         inherit pkgs;
         extraSpecialArgs = {inherit inputs pkgsStable nixGL;};
         modules = [
+          inputs.sops-nix.homeManagerModules.sops
           ./home/gui.nix
           ./home/terminal.nix
           ./hosts/work/default.nix

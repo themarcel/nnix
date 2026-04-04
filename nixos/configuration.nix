@@ -72,24 +72,12 @@
     XDG_RUNTIME_DIR = "/run/user/1000";
   };
 
-  # TODO: Learn how to setup cachix auto push
-  # Option 1:
-  # services.cachix-agent.enable = true;
-  # services.cachix-agent = {
-  #   enable = true;
-  #   cache = "marcelarie";
-  # };
-  # Option 2:
-  # services.cachix‑watch‑store = {
-  #   enable           = true;
-  #   cacheName        = "marcelarie";
-  #   cachixTokenFile  = "/home/marcel/.config/cachix/cachix.dhall";
-  #   # optional settings:
-  #   # compressionLevel = 3;
-  #   # jobs             = 4;
-  #   # host             = "https://marcelarie.cachix.org";  # rarely needed
-  #   # verbose          = true;
-  # };
+  services.cachix-watch-store = {
+    enable = true;
+    cacheName = "marcelarie";
+    cachixTokenFile = config.sops.secrets.cachix_token.path;
+  };
+
   nix.gc = {
     automatic = true;
     dates = "weekly";
@@ -209,13 +197,11 @@
       soulseek = {
         listen_port = 50300;
         username = "mwallace";
-        password = "tetra-cactus-003";
       };
       web = {
         port = 5030;
         authentication = {
           username = username;
-          password = "slskd";
         };
       };
       global = {
@@ -235,14 +221,15 @@
     OLLAMA_KEEP_ALIVE = "24h";
   };
 
-  services.open-webui = {
-    enable = true;
-    port = 8080;
-    environment = {
-      OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
-      WEBUI_AUTH = "False";
-    };
-  };
+  # deprecated in favor of ai.marcel.cool
+  # services.open-webui = {
+  #   enable = true;
+  #   port = 8080;
+  #   environment = {
+  #     OLLAMA_API_BASE_URL = "http://127.0.0.1:11434";
+  #     WEBUI_AUTH = "False";
+  #   };
+  # };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -380,12 +367,22 @@
     pinentryPackage = pkgs.pinentry-curses;
   };
 
-  # sops = {
-  #   defaultSopsFile = ../secrets/secrets.yaml;
-  #   defaultSopsFormat = "yaml";
-  #   gnupg.home = "/home/marcel/.gnupg";
-  #   secrets.example_secret = {owner = "marcel";};
-  # };
+  sops = {
+    defaultSopsFile = ../secrets/nixos.yaml;
+    defaultSopsFormat = "yaml";
+    age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+
+    secrets = {
+      "slskd_secrets" = {
+        format = "dotenv";
+        sopsFile = ../secrets/nixos.yaml;
+        owner = username;
+      };
+      "cachix_token" = {
+        owner = username;
+      };
+    };
+  };
 
   # List services that you want to enable:
 

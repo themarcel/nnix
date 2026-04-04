@@ -1,8 +1,17 @@
 keys:
-  - &nixos E657181013E636B3
+  - &admin "age1fnjmv5z9g293eulh94dpcmuv6d9ucnlnympjad9mj9vu8809zg6q92caf0"
+  - &work "age1qpdnzqwqlkss4sqqjyzc0tr5gqkxsv982ux7x0ccrza7tnj2redqq0kyee"
+  - &nixos "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINNK6mhge9n/+JnFRhh4VegAoK4jDY+9nk0FmyApvWS8 root@nixos"
 
 creation_rules:
-  - path_regex: secrets/secrets\.yaml$
+  - path_regex: secrets/work\.yaml$
     key_groups:
-      - pgp:
+      - age:
+          - *admin
+          - *work
+
+  - path_regex: secrets/nixos\.yaml$
+    key_groups:
+      - age:
+          - *admin
           - *nixos
