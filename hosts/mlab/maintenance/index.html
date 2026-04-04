@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Route Not Found</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="favicon.ico" />
+  </head>
+  <body>
+    <div class="terminal">
+      <p class="prompt">
+        <span class="user">guest@mlab</span>:<span class="dir">~</span>$ curl -I
+        <span id="failed-url">...</span>
+      </p>
+      <p class="error">HTTP/1.1 404 Not Found</p>
+      <p class="error">
+        Error: The requested route is either down for maintenance or does not
+        exist.
+      </p>
+      <br />
+      <p class="prompt">
+        <span class="user">guest@mlab</span>:<span class="dir">~</span>$ ls -la
+        /available_services/
+      </p>
+      <ul class="routes">
+        <li><a href="https://ai.marcel.cool">drwxr-xr-x ai_interface/</a></li>
+        <li>
+          <a href="https://music.marcel.cool">drwxr-xr-x navidrome_music/</a>
+        </li>
+        <li>
+          <a href="https://slskd.marcel.cool">drwxr-xr-x soulseek_client/</a>
+        </li>
+        <li>
+          <a href="https://soulbeet.marcel.cool"
+            >drwxr-xr-x soulbeet_library/</a
+          >
+        </li>
+      </ul>
+      <p class="prompt">
+        <span class="user">guest@mlab</span>:<span class="dir">~</span>$
+        <span class="cursor">_</span>
+      </p>
+    </div>
+
+    <script>
+      document.getElementById("failed-url").textContent = window.location.href;
+
+      const links = document.querySelectorAll(".routes a");
+      let currentIndex = 0;
+
+      function updateSelection() {
+        links.forEach((link, index) => {
+          if (index === currentIndex) {
+            link.classList.add("selected");
+          } else {
+            link.classList.remove("selected");
+          }
+        });
+      }
+
+      updateSelection();
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          currentIndex = (currentIndex + 1) % links.length;
+          updateSelection();
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          currentIndex = (currentIndex - 1 + links.length) % links.length;
+          updateSelection();
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          window.location.href = links[currentIndex].href;
+        }
+      });
+
+      links.forEach((link, index) => {
+        link.addEventListener("mouseenter", () => {
+          currentIndex = index;
+          updateSelection();
+        });
+      });
+    </script>
+  </body>
+</html>

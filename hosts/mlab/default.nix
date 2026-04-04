@@ -12,6 +12,25 @@
 
   time.timeZone = "Europe/Madrid";
 
+  programs.mosh.enable = true;
+
+  services.nginx = {
+    enable = true;
+    virtualHosts."_" = {
+      default = true;
+      listen = [
+        {
+          addr = "0.0.0.0";
+          port = 80;
+        }
+      ];
+      root = ./maintenance;
+      locations."/" = {
+        tryFiles = "$uri /index.html";
+      };
+    };
+  };
+
   systemd.tmpfiles.rules = [
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
@@ -123,7 +142,7 @@
     tunnels = {
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = "/var/lib/cloudflared/tunnel.json";
-        default = "http_status:404";
+        default = "http://127.0.0.1:80";
         ingress = {
           "ai.marcel.cool" = "http://127.0.0.1:3000";
           "music.marcel.cool" = "http://127.0.0.1:4533";
@@ -198,6 +217,7 @@
     firewall = {
       enable = true;
       allowedTCPPorts = [
+        80 # nginx catch-all
         3000
         3001 # Immich UI
         2283 # Immich API
@@ -205,6 +225,12 @@
         50300
         4533 # Navidrome
         9765 # Soulbeet
+      ];
+      allowedUDPPortRanges = [
+        {
+          from = 60000;
+          to = 61000;
+        }
       ];
       extraCommands = ''
         # Allow traffic from Podman containers to the host

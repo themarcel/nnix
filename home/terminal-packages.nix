@@ -8,7 +8,7 @@ with pkgs;
   # libreoffice
   # lsv
   # rff
-  aider-chat
+  # aider-chat
   appimage-run
   astro-language-server
   atool
@@ -30,8 +30,6 @@ with pkgs;
   chafa
   charm-freeze
   clang-tools
-  clang-tools
-  claude-code
   codex
   cowsay
   cowsay
@@ -72,7 +70,8 @@ with pkgs;
   glow
   gnumake
   (pkgs.google-cloud-sdk.withExtraComponents (
-    with pkgs.google-cloud-sdk.components; [
+    with pkgs.google-cloud-sdk.components;
+    [
       gke-gcloud-auth-plugin
     ]
   ))
