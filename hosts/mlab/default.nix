@@ -25,7 +25,10 @@
       "web_pass" = {};
       "app_user" = {};
       "app_pass" = {};
-      "josep_password" = {neededForUsers = true;};
+      "josep_password" = {
+        neededForUsers = true;
+      };
+      "jackett_api_key" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
@@ -44,6 +47,12 @@
       group = "cloudflared";
     };
 
+    templates."jackett.json" = {
+      content = ''{"api_key":"${config.sops.placeholder.jackett_api_key}","tracker_first":false,"url":"http://127.0.0.1:9117","thread_count":20}'';
+      owner = "qbittorrent";
+      group = "qbittorrent";
+    };
+
     templates."slskd-mlab.env" = {
       content = ''
         SLSKD_SLSK_USERNAME='${config.sops.placeholder.slsk_user}'
@@ -54,8 +63,6 @@
 
         SLSKD_WEB_USERNAME=${config.sops.placeholder.web_user}
         SLSKD_WEB_PASSWORD=${config.sops.placeholder.web_pass}
-
-        SLSKD_WEB__AUTHENTICATION__APIKEYS__SOULBEET__KEY='${config.sops.placeholder.slskd_api_key}'
       '';
       owner = "slskd";
     };
@@ -78,6 +85,11 @@
     };
   };
 
+  services.sonarr = {
+    enable = true;
+    openFirewall = true;
+  };
+
   systemd.tmpfiles.rules = [
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
@@ -86,8 +98,27 @@
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
     "d /var/lib/slskd/music/share 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
+    "d /var/lib/media 0775 qbittorrent media -"
+    "d /var/lib/media/downloads 0775 qbittorrent media -"
+    "d /var/lib/media/tv 0775 qbittorrent media -"
+    "d /var/lib/media/movies 0775 qbittorrent media -"
+    "d /var/lib/media/tv 0775 sonarr media -"
+    "d /var/lib/media/downloads 0775 sonarr media -"
+    "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
+    "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
   ];
   systemd.services.ddclient.after = ["nss-user-lookup.target"];
+
+  services.jellyfin = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  services.qbittorrent = {
+    enable = true;
+    openFirewall = true;
+    webuiPort = 8081;
+  };
 
   systemd.services.slskd.serviceConfig = {
     ProtectSystem = lib.mkForce false;
@@ -205,6 +236,11 @@
           "music.marcel.cool" = "http://127.0.0.1:4533";
           "slskd.marcel.cool" = "http://127.0.0.1:5030";
           "soulbeet.marcel.cool" = "http://127.0.0.1:9765";
+          "jellyfin.marcel.cool" = "http://127.0.0.1:8096";
+          "qbit.marcel.cool" = "http://127.0.0.1:8081";
+          "jackett.marcel.cool" = "http://127.0.0.1:9117";
+          "sonarr.marcel.cool" = "http://127.0.0.1:8989";
+          "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
         };
       };
     };
@@ -233,6 +269,7 @@
         address = "0.0.0.0";
         authentication = {
           enabled = true;
+          key = "slskdAPIkey9988776655aabbccdd";
         };
       };
       global = {
@@ -266,6 +303,18 @@
 
   networking = {
     hostName = "mlab";
+    interfaces = {
+      enp2s0f0np0 = {
+        useDHCP = true;
+      };
+      enp2s0f1np1 = {
+        useDHCP = true;
+      };
+    };
+    nameservers = [
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
     firewall = {
       enable = true;
       allowedTCPPorts = [
@@ -277,6 +326,11 @@
         50300
         4533 # Navidrome
         9765 # Soulbeet
+        8096 # Jellyfin HTTP
+        8081 # qBittorrent WebUI
+        8080 # SABnzbd
+        9117 # Jackett
+        8989 # Sonarr
       ];
       allowedUDPPortRanges = [
         {
@@ -299,6 +353,21 @@
       efi.canTouchEfiVariables = true;
     };
     tmp.cleanOnBoot = true;
+  };
+
+  services.sabnzbd = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      misc = {
+        host_whitelist = "sabnzbd.marcel.cool, mlab, 127.0.0.1";
+      };
+      server = {
+        host = "0.0.0.0";
+        port = 8080;
+      };
+    };
+    allowConfigWrite = true;
   };
 
   services.logrotate.checkConfig = false;
@@ -415,6 +484,25 @@
       group = "ddclient";
     };
     groups.ddclient = {};
+
+    users.jellyfin.extraGroups = [
+      "render"
+      "video"
+      "media"
+    ];
+    users.qbittorrent.extraGroups = ["media"];
+    groups.media = {};
+
+    users.sonarr = {
+      isSystemUser = true;
+      group = "sonarr";
+      extraGroups = ["media"];
+    };
+    groups.sonarr = {};
+
+    users.sabnzbd = {
+      extraGroups = ["media"];
+    };
   };
 
   services.ollama = {
@@ -434,6 +522,11 @@
         port = 2283;
       };
     };
+  };
+
+  services.jackett = {
+    enable = true;
+    openFirewall = true;
   };
 
   home-manager = {
