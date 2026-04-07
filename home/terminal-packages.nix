@@ -1,7 +1,6 @@
 # Shared cli only package list for both home-manager and nix-on-droid
-{ pkgs }:
-with pkgs;
-[
+{pkgs}:
+with pkgs; [
   # helix
   # helix
   # libreoffice
@@ -70,8 +69,7 @@ with pkgs;
   glow
   gnumake
   (pkgs.google-cloud-sdk.withExtraComponents (
-    with pkgs.google-cloud-sdk.components;
-    [
+    with pkgs.google-cloud-sdk.components; [
       gke-gcloud-auth-plugin
     ]
   ))

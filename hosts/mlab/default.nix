@@ -38,6 +38,14 @@
         owner = "cloudflared";
         group = "cloudflared";
       };
+      "sonarr_api" = {};
+      "radarr_api" = {};
+      "lidarr_api" = {};
+      "prowlarr_api" = {};
+      "sabnzbd_api" = {};
+      "jellyfin_api" = {};
+      "navidrome_token" = {};
+      "navidrome_salt" = {};
     };
 
     templates."tunnel.json" = {
@@ -58,6 +66,22 @@
         SLSKD_WEB_PASSWORD=${config.sops.placeholder.web_pass}
       '';
       owner = "slskd";
+    };
+
+    templates."homepage.env" = {
+      content = ''
+        HOMEPAGE_ALLOWED_HOSTS="home.marcel.cool,127.0.0.1,localhost"
+        HOMEPAGE_VAR_WEB_USER='${config.sops.placeholder.web_user}'
+        HOMEPAGE_VAR_WEB_PASS='${config.sops.placeholder.web_pass}'
+        HOMEPAGE_VAR_SONARR_API='${config.sops.placeholder.sonarr_api}'
+        HOMEPAGE_VAR_RADARR_API='${config.sops.placeholder.radarr_api}'
+        HOMEPAGE_VAR_LIDARR_API='${config.sops.placeholder.lidarr_api}'
+        HOMEPAGE_VAR_PROWLARR_API='${config.sops.placeholder.prowlarr_api}'
+        HOMEPAGE_VAR_SABNZBD_API='${config.sops.placeholder.sabnzbd_api}'
+        HOMEPAGE_VAR_JELLYFIN_API='${config.sops.placeholder.jellyfin_api}'
+        HOMEPAGE_VAR_NAVIDROME_TOKEN='${config.sops.placeholder.navidrome_token}'
+        HOMEPAGE_VAR_NAVIDROME_SALT='${config.sops.placeholder.navidrome_salt}'
+      '';
     };
   };
 
@@ -108,7 +132,6 @@
     "d /var/lib/slskd/music 0755 slskd slskd -"
     "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
-    "d /var/lib/slskd/music/share 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
 
     # shared media stack
@@ -119,6 +142,7 @@
     "d /var/lib/media/tv 0775 root media -"
     "d /var/lib/media/movies 0775 root media -"
     "d /var/lib/media/music 0775 root media -"
+    "d /var/lib/slskd/music/share 0775 slskd media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
@@ -218,7 +242,7 @@
   sops.templates."soulbeet.env".content = ''
     # Connection to Slskd
     SLSKD_URL=http://127.0.0.1:5030
-    SLSKD_API_KEY=${config.sops.placeholder.slskd_api_key}
+    # SLSKD_API_KEY=slskdAPIkey9988776655aabbccdd
 
     # Connection to Navidrome
     NAVIDROME_URL=http://127.0.0.1:4533
@@ -233,14 +257,20 @@
     SOULBEET_URL=https://soulbeet.marcel.cool
   '';
 
+  environment.etc."soulbeet/beets_config.yaml".text = ''
+    directory: /music
+    library: /data/soulbeet.db
+    import:
+      move: yes
+  '';
+
   virtualisation.oci-containers.containers.soulbeet = {
     image = "docker.io/docccccc/soulbeet:latest";
     volumes = [
       "/var/lib/soulbeet:/data"
       "/var/lib/slskd/music/downloads:/var/lib/slskd/music/downloads"
       "/var/lib/slskd/music/share:/music"
-      # optional: mount a custom beets config if you have specific tagging needs
-      # "/etc/soulbeet/beets_config.yaml:/config/config.yaml"
+      "/etc/soulbeet/beets_config.yaml:/config/config.yaml"
     ];
     environmentFiles = [
       config.sops.templates."soulbeet.env".path
@@ -266,6 +296,7 @@
           "lidarr.marcel.cool" = "http://127.0.0.1:8686";
           "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
           "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
+          "home.marcel.cool" = "http://127.0.0.1:8082";
         };
       };
     };
@@ -298,8 +329,12 @@
         port = 5030;
         address = "0.0.0.0";
         authentication = {
-          enabled = true;
-          key = "slskdAPIkey9988776655aabbccdd";
+          api_keys = {
+            soulbeet = {
+              key = "slskdAPIkey9988776655aabbccdd";
+              role = "administrator";
+            };
+          };
         };
       };
       global = {
@@ -363,6 +398,7 @@
         8989 # Sonarr
         7878 # Radarr
         9696 # Prowlarr
+        8082 # Homepage Dashboard
       ];
       allowedUDPPortRanges = [
         {
@@ -528,6 +564,7 @@
       "render"
       "video"
       "media"
+      "slskd"
     ];
     users.qbittorrent.extraGroups = ["media"];
     groups.media = {};
@@ -607,6 +644,178 @@
       };
       imports = [inputs.nvim.homeManagerModules.default];
     };
+  };
+
+  services.flaresolverr = {
+    enable = true;
+    port = 8191;
+    openFirewall = true;
+  };
+
+  services.homepage-dashboard = {
+    enable = true;
+    listenPort = 8082;
+    environmentFile = config.sops.templates."homepage.env".path;
+
+    settings = {
+      title = "Mlab Dashboard";
+      color = "zinc";
+      theme = "dark";
+      useEqualHeights = true;
+      layout = {
+        "Media & Audio" = {
+          style = "row";
+          columns = 3;
+        };
+        "Arr" = {
+          style = "row";
+          columns = 3;
+        };
+        "Tools" = {
+          style = "row";
+          columns = 2;
+        };
+      };
+    };
+
+    widgets = [
+      {
+        resources = {
+          cpu = true;
+          memory = true;
+          disk = "/";
+        };
+      }
+    ];
+
+    services = [
+      {
+        "Media & Audio" = [
+          {
+            Navidrome = {
+              icon = "navidrome";
+              href = "https://music.marcel.cool";
+              description = "Music Streamer";
+              widget = {
+                type = "navidrome";
+                url = "http://127.0.0.1:4533";
+                user = "{{HOMEPAGE_VAR_WEB_USER}}";
+                salt = "{{HOMEPAGE_VAR_NAVIDROME_SALT}}";
+                token = "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}";
+              };
+            };
+          }
+          {
+            Jellyfin = {
+              icon = "jellyfin";
+              href = "https://jellyfin.marcel.cool";
+              description = "Video Server";
+              widget = {
+                type = "jellyfin";
+                url = "http://127.0.0.1:8096";
+                key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
+              };
+            };
+          }
+          {
+            Slskd = {
+              icon = "soulseek";
+              href = "https://slskd.marcel.cool";
+              description = "Soulseek Client";
+            };
+          }
+          {
+            Soulbeet = {
+              icon = "music";
+              href = "https://soulbeet.marcel.cool";
+              description = "Library Management";
+            };
+          }
+        ];
+      }
+      {
+        "Arr" = [
+          {
+            Sonarr = {
+              icon = "sonarr";
+              href = "https://sonarr.marcel.cool";
+              widget = {
+                type = "sonarr";
+                url = "http://127.0.0.1:8989";
+                key = "{{HOMEPAGE_VAR_SONARR_API}}";
+              };
+            };
+          }
+          {
+            Radarr = {
+              icon = "radarr";
+              href = "https://radarr.marcel.cool";
+              widget = {
+                type = "radarr";
+                url = "http://127.0.0.1:7878";
+                key = "{{HOMEPAGE_VAR_RADARR_API}}";
+              };
+            };
+          }
+          {
+            Lidarr = {
+              icon = "lidarr";
+              href = "https://lidarr.marcel.cool";
+              widget = {
+                type = "lidarr";
+                url = "http://127.0.0.1:8686";
+                key = "{{HOMEPAGE_VAR_LIDARR_API}}";
+              };
+            };
+          }
+          {
+            Prowlarr = {
+              icon = "prowlarr";
+              href = "https://prowlarr.marcel.cool";
+              widget = {
+                type = "prowlarr";
+                url = "http://127.0.0.1:9696";
+                key = "{{HOMEPAGE_VAR_PROWLARR_API}}";
+              };
+            };
+          }
+          {
+            qBittorrent = {
+              icon = "qbittorrent";
+              href = "https://qbit.marcel.cool";
+              widget = {
+                type = "qbittorrent";
+                url = "http://127.0.0.1:8081";
+                username = "{{HOMEPAGE_VAR_WEB_USER}}";
+                password = "{{HOMEPAGE_VAR_WEB_PASS}}";
+              };
+            };
+          }
+          {
+            SABnzbd = {
+              icon = "sabnzbd";
+              href = "https://sabnzbd.marcel.cool";
+              widget = {
+                type = "sabnzbd";
+                url = "http://127.0.0.1:8080";
+                key = "{{HOMEPAGE_VAR_SABNZBD_API}}";
+              };
+            };
+          }
+        ];
+      }
+      {
+        "Tools" = [
+          {
+            "Open WebUI" = {
+              icon = "ollama";
+              href = "https://ai.marcel.cool";
+              description = "Local LLM Interface";
+            };
+          }
+        ];
+      }
+    ];
   };
 
   system.stateVersion = "25.11";
