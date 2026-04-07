@@ -46,12 +46,27 @@
       "jellyfin_api" = {};
       "navidrome_token" = {};
       "navidrome_salt" = {};
+      "qbit_password_hash" = {};
+      "qbit_password_salt" = {};
     };
 
     templates."tunnel.json" = {
       content = config.sops.placeholder.cloudflared_tunnel_json;
       owner = "cloudflared";
       group = "cloudflared";
+    };
+
+    templates."qBittorrent.conf" = {
+      content = ''
+        [Preferences]
+        WebUI\Username=${config.sops.placeholder.web_user}
+        WebUI\Password_PBKDF2="@ByteArray(${config.sops.placeholder.qbit_password_hash})"
+        WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
+        WebUI\Port=8081
+        WebUI\AuthSubnetWhitelist=127.0.0.1/32
+      '';
+      owner = "qbittorrent";
+      group = "media";
     };
 
     templates."slskd-mlab.env" = {
@@ -165,6 +180,13 @@
     openFirewall = true;
     webuiPort = 8081;
   };
+  systemd.services.qbittorrent.preStart = ''
+    mkdir -p /var/lib/qbittorrent/.config/qBittorrent
+    cp -f ${config.sops.templates."qBittorrent.conf".path} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    # Use the specific user/group from the config to avoid "Invalid Argument"
+    chown ${config.services.qbittorrent.user}:${config.services.qbittorrent.group} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+  '';
 
   systemd.services.ddclient.after = ["nss-user-lookup.target"];
   systemd.services.slskd.serviceConfig = {
