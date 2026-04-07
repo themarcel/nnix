@@ -167,6 +167,7 @@ with pkgs;
   sqlfluff
   sqlite
   starship
+  sshfs
   stylua
   sysz
   tailwindcss-language-server

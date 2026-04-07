@@ -28,7 +28,6 @@
       "josep_password" = {
         neededForUsers = true;
       };
-      "jackett_api_key" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
@@ -45,12 +44,6 @@
       content = config.sops.placeholder.cloudflared_tunnel_json;
       owner = "cloudflared";
       group = "cloudflared";
-    };
-
-    templates."jackett.json" = {
-      content = ''{"api_key":"${config.sops.placeholder.jackett_api_key}","tracker_first":false,"url":"http://127.0.0.1:9117","thread_count":20}'';
-      owner = "qbittorrent";
-      group = "qbittorrent";
     };
 
     templates."slskd-mlab.env" = {
@@ -90,7 +83,26 @@
     openFirewall = true;
   };
 
+  # systemd.tmpfiles.rules = [
+  #   "d /var/lib/soulbeet 0755 root root -"
+  #   "d /var/lib/slskd 0755 slskd slskd -"
+  #   "d /var/lib/slskd/music 0755 slskd slskd -"
+  #   "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
+  #   "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
+  #   "d /var/lib/slskd/music/share 0755 slskd slskd -"
+  #   "d /etc/slskd 0755 slskd slskd -"
+  #   "d /var/lib/media 0775 qbittorrent media -"
+  #   "d /var/lib/media/downloads 0775 qbittorrent media -"
+  #   "d /var/lib/media/tv 0775 qbittorrent media -"
+  #   "d /var/lib/media/movies 0775 qbittorrent media -"
+  #   "d /var/lib/media/tv 0775 sonarr media -"
+  #   "d /var/lib/media/downloads 0775 sonarr media -"
+  #   "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
+  #   "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
+  # ];
+
   systemd.tmpfiles.rules = [
+    # soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
     "d /var/lib/slskd/music 0755 slskd slskd -"
@@ -98,19 +110,29 @@
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
     "d /var/lib/slskd/music/share 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
-    "d /var/lib/media 0775 qbittorrent media -"
-    "d /var/lib/media/downloads 0775 qbittorrent media -"
-    "d /var/lib/media/tv 0775 qbittorrent media -"
-    "d /var/lib/media/movies 0775 qbittorrent media -"
-    "d /var/lib/media/tv 0775 sonarr media -"
-    "d /var/lib/media/downloads 0775 sonarr media -"
+
+    # shared media stack
+    # we use root:media so every app in the media group has rwx access
+    "d /var/lib/media 0775 root media -"
+    "d /var/lib/media/downloads 2775 root media -"
+    "d /var/lib/media/downloads/incomplete 0775 root media -"
+    "d /var/lib/media/tv 0775 root media -"
+    "d /var/lib/media/movies 0775 root media -"
+    "d /var/lib/media/music 0775 root media -"
+
+    # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
     "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
   ];
-  systemd.services.ddclient.after = ["nss-user-lookup.target"];
 
   services.jellyfin = {
     enable = true;
+    openFirewall = true;
+  };
+
+  services.radarr = {
+    enable = true;
+    group = "media";
     openFirewall = true;
   };
 
@@ -120,6 +142,7 @@
     webuiPort = 8081;
   };
 
+  systemd.services.ddclient.after = ["nss-user-lookup.target"];
   systemd.services.slskd.serviceConfig = {
     ProtectSystem = lib.mkForce false;
     PrivateTmp = lib.mkForce false;
@@ -238,12 +261,19 @@
           "soulbeet.marcel.cool" = "http://127.0.0.1:9765";
           "jellyfin.marcel.cool" = "http://127.0.0.1:8096";
           "qbit.marcel.cool" = "http://127.0.0.1:8081";
-          "jackett.marcel.cool" = "http://127.0.0.1:9117";
           "sonarr.marcel.cool" = "http://127.0.0.1:8989";
+          "radarr.marcel.cool" = "http://127.0.0.1:7878";
+          "lidarr.marcel.cool" = "http://127.0.0.1:8686";
           "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
+          "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
         };
       };
     };
+  };
+
+  services.lidarr = {
+    enable = true;
+    openFirewall = true;
   };
 
   services.slskd = {
@@ -331,6 +361,8 @@
         8080 # SABnzbd
         9117 # Jackett
         8989 # Sonarr
+        7878 # Radarr
+        9696 # Prowlarr
       ];
       allowedUDPPortRanges = [
         {
@@ -358,6 +390,8 @@
   services.sabnzbd = {
     enable = true;
     openFirewall = true;
+    configFile = null;
+    group = "media";
     settings = {
       misc = {
         host_whitelist = "sabnzbd.marcel.cool, mlab, 127.0.0.1";
@@ -368,6 +402,11 @@
       };
     };
     allowConfigWrite = true;
+  };
+
+  services.prowlarr = {
+    enable = true;
+    openFirewall = true;
   };
 
   services.logrotate.checkConfig = false;
@@ -503,6 +542,12 @@
     users.sabnzbd = {
       extraGroups = ["media"];
     };
+    users.radarr = {
+      extraGroups = ["media"];
+    };
+    users.lidarr = {
+      extraGroups = ["media"];
+    };
   };
 
   services.ollama = {
@@ -524,9 +569,27 @@
     };
   };
 
-  services.jackett = {
-    enable = true;
-    openFirewall = true;
+  systemd.services = {
+    sonarr.serviceConfig = {
+      ReadWritePaths = ["/var/lib/media"];
+      UMask = lib.mkForce "0002";
+    };
+    radarr.serviceConfig = {
+      ReadWritePaths = ["/var/lib/media"];
+      UMask = lib.mkForce "0002";
+    };
+    lidarr.serviceConfig = {
+      ReadWritePaths = ["/var/lib/media"];
+      UMask = lib.mkForce "0002";
+    };
+    qbittorrent.serviceConfig = {
+      ReadWritePaths = ["/var/lib/media"];
+      UMask = lib.mkForce "0002";
+    };
+    sabnzbd.serviceConfig = {
+      ReadWritePaths = ["/var/lib/media"];
+      UMask = lib.mkForce "0002";
+    };
   };
 
   home-manager = {
