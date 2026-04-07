@@ -297,6 +297,7 @@
           "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
           "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
           "home.marcel.cool" = "http://127.0.0.1:8082";
+          "bazarr.marcel.cool" = "http://127.0.0.1:6767";
         };
       };
     };
@@ -398,6 +399,7 @@
         8989 # Sonarr
         7878 # Radarr
         9696 # Prowlarr
+        6767 # Bazarr
         8082 # Homepage Dashboard
       ];
       allowedUDPPortRanges = [
@@ -592,7 +594,8 @@
   };
 
   services.immich = {
-    enable = false; # disable for now
+    enable = true;
+    acceleration = "quickSync";
 
     settings = {
       server = {
@@ -604,6 +607,16 @@
         port = 2283;
       };
     };
+  };
+
+  services.bazarr = {
+    enable = true;
+    group = "media";
+    openFirewall = true;
+  };
+  systemd.services.bazarr.serviceConfig = {
+    ReadWritePaths = ["/var/lib/media"];
+    UMask = lib.mkForce "0002";
   };
 
   systemd.services = {
@@ -799,6 +812,17 @@
                 type = "sabnzbd";
                 url = "http://127.0.0.1:8080";
                 key = "{{HOMEPAGE_VAR_SABNZBD_API}}";
+              };
+            };
+          }
+          {
+            Bazarr = {
+              icon = "bazarr";
+              href = "https://bazarr.marcel.cool";
+              widget = {
+                type = "bazarr";
+                url = "http://127.0.0.1:6767";
+                key = "{{HOMEPAGE_VAR_BAZARR_API}}";
               };
             };
           }
