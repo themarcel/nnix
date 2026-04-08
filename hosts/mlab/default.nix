@@ -48,6 +48,9 @@
       "navidrome_salt" = {};
       "qbit_password_hash" = {};
       "qbit_password_salt" = {};
+      "bazarr_api" = {};
+      "immich_api" = {};
+      "seerr_api" = {};
     };
 
     templates."tunnel.json" = {
@@ -96,6 +99,9 @@
         HOMEPAGE_VAR_JELLYFIN_API='${config.sops.placeholder.jellyfin_api}'
         HOMEPAGE_VAR_NAVIDROME_TOKEN='${config.sops.placeholder.navidrome_token}'
         HOMEPAGE_VAR_NAVIDROME_SALT='${config.sops.placeholder.navidrome_salt}'
+        HOMEPAGE_VAR_BAZARR_API='${config.sops.placeholder.bazarr_api}'
+        HOMEPAGE_VAR_IMMICH_API='${config.sops.placeholder.immich_api}'
+        HOMEPAGE_VAR_SEERR_API='${config.sops.placeholder.seerr_api}'
       '';
     };
   };
@@ -122,24 +128,6 @@
     openFirewall = true;
   };
 
-  # systemd.tmpfiles.rules = [
-  #   "d /var/lib/soulbeet 0755 root root -"
-  #   "d /var/lib/slskd 0755 slskd slskd -"
-  #   "d /var/lib/slskd/music 0755 slskd slskd -"
-  #   "d /var/lib/slskd/music/downloads 0755 slskd slskd -"
-  #   "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
-  #   "d /var/lib/slskd/music/share 0755 slskd slskd -"
-  #   "d /etc/slskd 0755 slskd slskd -"
-  #   "d /var/lib/media 0775 qbittorrent media -"
-  #   "d /var/lib/media/downloads 0775 qbittorrent media -"
-  #   "d /var/lib/media/tv 0775 qbittorrent media -"
-  #   "d /var/lib/media/movies 0775 qbittorrent media -"
-  #   "d /var/lib/media/tv 0775 sonarr media -"
-  #   "d /var/lib/media/downloads 0775 sonarr media -"
-  #   "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
-  #   "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
-  # ];
-
   systemd.tmpfiles.rules = [
     # soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
@@ -158,6 +146,10 @@
     "d /var/lib/media/movies 0775 root media -"
     "d /var/lib/media/music 0775 root media -"
     "d /var/lib/slskd/music/share 0775 slskd media -"
+    "d /var/lib/seerr 0775 1000 media -"
+    "d /var/lib/media/books 0775 root media -"
+    "d /var/lib/media/audiobooks 0775 root media -"
+    "d /var/lib/chaptarr 0775 chaptarr media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
@@ -300,6 +292,40 @@
     extraOptions = ["--network=host"]; # allows easy access to local slskd/navidrome
   };
 
+  virtualisation.oci-containers.containers.seerr = {
+    image = "ghcr.io/seerr-team/seerr:latest";
+    volumes = [
+      "/var/lib/seerr:/app/config"
+    ];
+    environment = {
+      TZ = config.time.timeZone;
+      PORT = "5055";
+    };
+    extraOptions = [
+      "--network=host"
+      "--init"
+    ];
+  };
+
+  virtualisation.oci-containers.containers.chaptarr = {
+    image = "robertlordhood/chaptarr:latest";
+    volumes = [
+      "/var/lib/chaptarr:/config"
+      "/var/lib/media/books:/books"
+      "/var/lib/media/audiobooks:/audiobooks"
+      "/var/lib/media/downloads:/var/lib/media/downloads"
+    ];
+    environment = {
+      TZ = config.time.timeZone;
+      PUID = "950"; # static chaptarr user UID
+      PGID = "986"; # system's 'media' group GID
+    };
+    extraOptions = [
+      "--network=host"
+      "--init"
+    ];
+  };
+
   services.cloudflared = {
     enable = true;
     tunnels = {
@@ -320,6 +346,9 @@
           "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
           "home.marcel.cool" = "http://127.0.0.1:8082";
           "bazarr.marcel.cool" = "http://127.0.0.1:6767";
+          "img.marcel.cool" = "http://127.0.0.1:2283";
+          "seerr.marcel.cool" = "http://127.0.0.1:5055";
+          "chaptarr.marcel.cool" = "http://127.0.0.1:8789";
         };
       };
     };
@@ -407,11 +436,10 @@
       enable = true;
       allowedTCPPorts = [
         80 # nginx catch-all
-        3000
-        3001 # Immich UI
-        2283 # Immich API
+        3000 # Openwebui
+        2283 # Immich
         5030 # slskd
-        50300
+        50300 # Soulseek
         4533 # Navidrome
         9765 # Soulbeet
         8096 # Jellyfin HTTP
@@ -423,6 +451,8 @@
         9696 # Prowlarr
         6767 # Bazarr
         8082 # Homepage Dashboard
+        5055 # Seerr
+        8789 # Chaptarr
       ];
       allowedUDPPortRanges = [
         {
@@ -501,6 +531,17 @@
     jq
     ripgrep
     tmux
+    neovim
+    eza
+    zoxide
+    fd
+    fzf
+    bat
+    bottom
+    starship
+    direnv
+    sysz
+    btop
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
@@ -530,17 +571,6 @@
     users.dev = {
       isNormalUser = true;
       extraGroups = ["wheel"];
-      packages = with pkgs; [
-        neovim
-        eza
-        zoxide
-        fd
-        fzf
-        bat
-        bottom
-        starship
-        direnv
-      ];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
       ];
@@ -609,6 +639,15 @@
     users.lidarr = {
       extraGroups = ["media"];
     };
+    users.chaptarr = {
+      isSystemUser = true;
+      group = "chaptarr";
+      extraGroups = ["media"];
+      uid = 950;
+    };
+    groups.chaptarr = {
+      gid = 950;
+    };
   };
 
   services.ollama = {
@@ -617,18 +656,8 @@
 
   services.immich = {
     enable = true;
-    acceleration = "quickSync";
-
-    settings = {
-      server = {
-        host = "0.0.0.0"; # frontend
-        port = 3001;
-      };
-      api = {
-        host = "0.0.0.0";
-        port = 2283;
-      };
-    };
+    host = "0.0.0.0";
+    port = 2283;
   };
 
   services.bazarr = {
@@ -679,12 +708,6 @@
       };
       imports = [inputs.nvim.homeManagerModules.default];
     };
-  };
-
-  services.flaresolverr = {
-    enable = true;
-    port = 8191;
-    openFirewall = true;
   };
 
   services.homepage-dashboard = {
@@ -848,6 +871,19 @@
               };
             };
           }
+          {
+            "Immich" = {
+              icon = "immich";
+              href = "https://img.marcel.cool";
+              description = "Photo Management";
+              widget = {
+                type = "immich";
+                url = "http://127.0.0.1:2283";
+                key = "{{HOMEPAGE_VAR_IMMICH_API}}";
+                version = 2;
+              };
+            };
+          }
         ];
       }
       {
@@ -861,6 +897,25 @@
           }
         ];
       }
+      # {
+      #   Seerr = {
+      #     icon = "seerr";
+      #     href = "https://seerr.marcel.cool";
+      #     description = "Media Requests";
+      #     widget = {
+      #       type = "seerr";
+      #       url = "http://127.0.0.1:5055";
+      #       key = "{{HOMEPAGE_VAR_SEERR_API}}";
+      #     };
+      #   };
+      # }
+      # {
+      #   Chaptarr = {
+      #     icon = "readarr";
+      #     href = "https://chaptarr.marcel.cool";
+      #     description = "Book Management";
+      #   };
+      # }
     ];
   };
 
