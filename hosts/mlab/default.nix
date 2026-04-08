@@ -229,6 +229,7 @@
     extraPackages = with pkgs; [
       intel-media-driver # for newer intel igpus
       intel-compute-runtime # OpenCL
+      vpl-gpu-rt # Required for QSV on Intel 11th Gen and newer
     ];
   };
 
@@ -475,6 +476,9 @@
       efi.canTouchEfiVariables = true;
     };
     tmp.cleanOnBoot = true;
+    kernelParams = [
+      "i915.enable_guc=3" # Forces GuC/HuC firmware loading for Low-Power encoding
+    ];
   };
 
   services.sabnzbd = {
@@ -703,7 +707,7 @@
     };
     users.dev = {lib, ...}: {
       home = {
-        stateVersion = "25.11";
+        stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";
       };
       imports = [inputs.nvim.homeManagerModules.default];
@@ -919,5 +923,5 @@
     ];
   };
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 }

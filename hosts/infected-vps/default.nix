@@ -100,10 +100,10 @@
       inherit pkgs;
     };
     users.dev = {lib, ...}: {
-      home.stateVersion = "24.11";
+      home.stateVersion = "26.05";
       imports = [inputs.nvim.homeManagerModules.default];
     };
   };
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "26.05";
 }

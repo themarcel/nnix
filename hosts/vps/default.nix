@@ -281,12 +281,12 @@
     };
     users.dev = {lib, ...}: {
       home = {
-        stateVersion = "24.11";
+        stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";
       };
       imports = [inputs.nvim.homeManagerModules.default];
     };
   };
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "26.05";
 }

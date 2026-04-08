@@ -9,7 +9,7 @@
   pstore = "${homeDir}/clones/own/password-store";
   terminalPackages = import ./terminal-packages.nix {inherit pkgs;};
 in {
-  home.stateVersion = "25.05";
+  home.stateVersion = "26.05";
   programs.home-manager.enable = true;
 
   home.sessionVariables = {
