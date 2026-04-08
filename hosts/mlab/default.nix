@@ -709,6 +709,26 @@
       home = {
         stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";
+        packages = with pkgs; [
+          atuin
+          gnupg
+          pass
+          carapace
+        ];
+        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
+        file."clones/forks/xelabash".source = inputs.xelabash;
+        file."scripts".source = "${inputs.dots}/scripts";
+        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+        file.".config/atuin".source = "${inputs.dots}/.config/atuin";
+        file.".config/carapace".source = "${inputs.dots}/.config/carapace";
+        file.".config/git".source = "${inputs.dots}/.config/git";
+        file.".config/zoxide".source = "${inputs.dots}/.config/zoxide";
+      };
+      programs.bash = {
+        enable = true;
+        initExtra = ''
+          source ${inputs.dots}/.bashrc
+        '';
       };
       imports = [inputs.nvim.homeManagerModules.default];
     };

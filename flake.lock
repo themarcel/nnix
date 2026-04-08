@@ -161,6 +161,22 @@
         "type": "github"
       }
     },
+    "dots": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775322309,
+        "narHash": "sha256-SLPaUv83yJahYU3EY2z2twY3US6rqja787kwdBl2WqU=",
+        "owner": "marcelarie",
+        "repo": "dots",
+        "rev": "2147ce5f1d64574b45c84f0739cbc1a7a2883db3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marcelarie",
+        "repo": "dots",
+        "type": "github"
+      }
+    },
     "fenix": {
       "inputs": {
         "nixpkgs": [
@@ -1383,6 +1399,7 @@
       "inputs": {
         "audio-select": "audio-select",
         "disko": "disko",
+        "dots": "dots",
         "foot-fork": "foot-fork",
         "git-commit-search": "git-commit-search",
         "haralyzer": "haralyzer",
@@ -1405,6 +1422,7 @@
         "rff": "rff",
         "sops-nix": "sops-nix",
         "tmex": "tmex",
+        "xelabash": "xelabash",
         "zuban": "zuban"
       }
     },
@@ -1706,6 +1724,22 @@
       "original": {
         "owner": "hyprwm",
         "repo": "xdg-desktop-portal-hyprland",
+        "type": "github"
+      }
+    },
+    "xelabash": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775318624,
+        "narHash": "sha256-ocBeO06wevAeZlEMIkDnf1ADwCoVGFJ9Q3/gZhNnMGI=",
+        "owner": "marcelarie",
+        "repo": "xelabash",
+        "rev": "e2fd25cc112c6a2ce476bfaacbd1143a8188b6e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "marcelarie",
+        "repo": "xelabash",
         "type": "github"
       }
     },

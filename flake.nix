@@ -11,6 +11,14 @@
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
     nvim.url = "github:marcelarie/nvim-lua";
+    dots = {
+      url = "github:marcelarie/dots";
+      flake = false;
+    };
+    xelabash = {
+      url = "github:marcelarie/xelabash";
+      flake = false;
+    };
     lsv = {
       url = "path:./packages/lsv";
       inputs.nixpkgs.follows = "nixpkgs";
