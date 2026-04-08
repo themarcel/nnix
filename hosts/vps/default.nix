@@ -238,19 +238,22 @@
       home = "/var/lib/slskd";
       createHome = true;
     };
+    groups.slskd = {};
+
+    users.immich.extraGroups = [
+      "render"
+      "video"
+    ];
+
+    users.navidrome = {
+      isSystemUser = true;
+      group = "navidrome";
+      extraGroups = ["slskd"];
+      home = "/var/lib/navidrome";
+      createHome = true;
+    };
+    groups.navidrome = {};
   };
-
-  users.groups.slskd = {};
-
-  users.users.navidrome = {
-    isSystemUser = true;
-    group = "navidrome";
-    extraGroups = ["slskd"];
-    home = "/var/lib/navidrome";
-    createHome = true;
-  };
-
-  users.groups.navidrome = {};
 
   services.ollama = {
     enable = false; # not for now, we need more gpu in some way
