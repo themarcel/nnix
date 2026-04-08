@@ -67,6 +67,7 @@
         WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
         WebUI\Port=8081
         WebUI\AuthSubnetWhitelist=127.0.0.1/32
+        Connection\AddressFamily=IPv4
       '';
       owner = "qbittorrent";
       group = "media";
@@ -422,6 +423,14 @@
   networking = {
     hostName = "mlab";
     interfaces = {
+      enp87s0 = {
+        ipv6.addresses = [
+          {
+            address = "2a0c:5a83:540a:ad00::100";
+            prefixLength = 64;
+          }
+        ];
+      };
       enp2s0f0np0 = {
         useDHCP = true;
       };
@@ -433,10 +442,12 @@
       "1.1.1.1"
       "8.8.8.8"
     ];
+    tempAddresses = "default";
     firewall = {
       enable = true;
       allowedTCPPorts = [
         80 # nginx catch-all
+        29888 # Qbitorrent
         3000 # Openwebui
         2283 # Immich
         5030 # slskd
@@ -455,6 +466,7 @@
         5055 # Seerr
         8789 # Chaptarr
       ];
+      allowedUDPPorts = [29888];
       allowedUDPPortRanges = [
         {
           from = 60000;
@@ -546,6 +558,7 @@
     direnv
     sysz
     btop
+    ethtool
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
