@@ -67,7 +67,9 @@
         WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
         WebUI\Port=8081
         WebUI\AuthSubnetWhitelist=127.0.0.1/32
-        Connection\AddressFamily=IPv4
+        Connection\AddressFamily=Both
+        Connection\Interface=enp87s0
+        Connection\InterfaceAddress=2a0c:5a83:540a:ad00::100
       '';
       owner = "qbittorrent";
       group = "media";
@@ -124,6 +126,29 @@
     };
   };
 
+  services.calibre-web = {
+    enable = true;
+    listen.ip = "0.0.0.0";
+    listen.port = 8083;
+    options.calibreLibrary = "/var/lib/media/books";
+    user = "calibre-web";
+    group = "media";
+  };
+  users.users.calibre-web.extraGroups = ["media"];
+  # automation: create a blank calibre database if missing
+  systemd.services.calibre-web = {
+    preStart = lib.mkBefore ''
+      if [ ! -f "${config.services.calibre-web.options.calibreLibrary}/metadata.db" ]; then
+        echo "Initializing empty Calibre library..."
+        ${pkgs.calibre}/bin/calibredb add --library-path "${config.services.calibre-web.options.calibreLibrary}" --empty
+      fi
+    '';
+
+    serviceConfig = {
+      SystemCallFilter = lib.mkForce ["~@clock" "~@module" "~@mount" "~@obsolete" "~@raw-io" "~@reboot" "~@swap"];
+    };
+  };
+
   services.sonarr = {
     enable = true;
     openFirewall = true;
@@ -151,6 +176,7 @@
     "d /var/lib/media/books 0775 root media -"
     "d /var/lib/media/audiobooks 0775 root media -"
     "d /var/lib/chaptarr 0775 chaptarr media -"
+    "d /var/lib/media/books 0775 calibre-web media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
@@ -351,6 +377,7 @@
           "img.marcel.cool" = "http://127.0.0.1:2283";
           "seerr.marcel.cool" = "http://127.0.0.1:5055";
           "chaptarr.marcel.cool" = "http://127.0.0.1:8789";
+          "calibre.marcel.cool" = "http://127.0.0.1:8083";
         };
       };
     };
@@ -420,6 +447,11 @@
     "/var/lib/slskd/music/share"
   ];
 
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.enp87s0.accept_ra" = 0;
+    "net.ipv6.conf.enp87s0.autoconf" = 0;
+  };
+
   networking = {
     hostName = "mlab";
     interfaces = {
@@ -442,7 +474,7 @@
       "1.1.1.1"
       "8.8.8.8"
     ];
-    tempAddresses = "default";
+    tempAddresses = "enabled";
     firewall = {
       enable = true;
       allowedTCPPorts = [
@@ -465,6 +497,7 @@
         8082 # Homepage Dashboard
         5055 # Seerr
         8789 # Chaptarr
+        8083 # Calibre Web
       ];
       allowedUDPPorts = [29888];
       allowedUDPPortRanges = [
@@ -539,6 +572,8 @@
   };
 
   environment.systemPackages = with pkgs; [
+    calibre
+    kepubify
     git
     vim
     tree
