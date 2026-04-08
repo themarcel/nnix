@@ -126,27 +126,32 @@
     };
   };
 
-  services.calibre-web = {
-    enable = true;
-    listen.ip = "0.0.0.0";
-    listen.port = 8083;
-    options.calibreLibrary = "/var/lib/media/books";
-    user = "calibre-web";
-    group = "media";
-  };
-  users.users.calibre-web.extraGroups = ["media"];
-  # automation: create a blank calibre database if missing
-  systemd.services.calibre-web = {
-    preStart = lib.mkBefore ''
-      if [ ! -f "${config.services.calibre-web.options.calibreLibrary}/metadata.db" ]; then
-        echo "Initializing empty Calibre library..."
-        ${pkgs.calibre}/bin/calibredb add --library-path "${config.services.calibre-web.options.calibreLibrary}" --empty
-      fi
-    '';
-
-    serviceConfig = {
-      SystemCallFilter = lib.mkForce ["~@clock" "~@module" "~@mount" "~@obsolete" "~@raw-io" "~@reboot" "~@swap"];
+  virtualisation.oci-containers.containers.calibre-web-automated = {
+    image = "crocodilestick/calibre-web-automated:latest";
+    volumes = [
+      "/var/lib/calibre-web-automated/config:/config"
+      "/var/lib/media/books:/calibre-library"
+      "/var/lib/media/books/import:/cwa-book-ingest"
+    ];
+    environment = {
+      PUID = "951";
+      PGID = "986";
+      TZ = config.time.timeZone;
+      DOCKER_MODS = "linuxserver/mods:universal-calibre";
     };
+    extraOptions = [
+      "--network=host"
+      "--no-healthcheck"
+    ];
+  };
+  users.users.calibre = {
+    isSystemUser = true;
+    group = "calibre";
+    extraGroups = ["media"];
+    uid = 951;
+  };
+  users.groups.calibre = {
+    gid = 951;
   };
 
   services.sonarr = {
@@ -176,7 +181,9 @@
     "d /var/lib/media/books 0775 root media -"
     "d /var/lib/media/audiobooks 0775 root media -"
     "d /var/lib/chaptarr 0775 chaptarr media -"
-    "d /var/lib/media/books 0775 calibre-web media -"
+    "d /var/lib/calibre-web-automated/config 0775 calibre media -"
+    "d /var/lib/media/books 0775 calibre media -"
+    "d /var/lib/media/books/import 0775 calibre media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
@@ -342,11 +349,13 @@
       "/var/lib/media/books:/books"
       "/var/lib/media/audiobooks:/audiobooks"
       "/var/lib/media/downloads:/var/lib/media/downloads"
+      "/var/lib/media/books/import:/import"
     ];
     environment = {
       TZ = config.time.timeZone;
       PUID = "950"; # static chaptarr user UID
       PGID = "986"; # system's 'media' group GID
+      UMASK = "002"; # allows CWA to move files
     };
     extraOptions = [
       "--network=host"
@@ -572,8 +581,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    calibre
-    kepubify
     git
     vim
     tree
