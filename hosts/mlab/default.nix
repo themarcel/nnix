@@ -884,6 +884,13 @@
             };
           }
           {
+            Chaptarr = {
+              icon = "readarr";
+              href = "https://chaptarr.marcel.cool";
+              description = "Book Management";
+            };
+          }
+          {
             Radarr = {
               icon = "radarr";
               href = "https://radarr.marcel.cool";
@@ -951,6 +958,18 @@
             };
           }
           {
+            "Seerr" = {
+              icon = "seerr";
+              href = "https://seerr.marcel.cool";
+              description = "Media Requests";
+              widget = {
+                type = "seerr";
+                url = "http://127.0.0.1:5055";
+                key = "{{HOMEPAGE_VAR_SEERR_API}}";
+              };
+            };
+          }
+          {
             "Immich" = {
               icon = "immich";
               href = "https://img.marcel.cool";
@@ -961,6 +980,20 @@
                 key = "{{HOMEPAGE_VAR_IMMICH_API}}";
                 version = 2;
               };
+            };
+          }
+          {
+            "Chaptarr" = {
+              icon = "readarr";
+              href = "https://chaptarr.marcel.cool";
+              description = "Book Requests";
+            };
+          }
+          {
+            "Calibre" = {
+              icon = "book";
+              href = "https://calibre.marcel.cool";
+              description = "Book Library";
             };
           }
         ];
@@ -976,25 +1009,6 @@
           }
         ];
       }
-      # {
-      #   Seerr = {
-      #     icon = "seerr";
-      #     href = "https://seerr.marcel.cool";
-      #     description = "Media Requests";
-      #     widget = {
-      #       type = "seerr";
-      #       url = "http://127.0.0.1:5055";
-      #       key = "{{HOMEPAGE_VAR_SEERR_API}}";
-      #     };
-      #   };
-      # }
-      # {
-      #   Chaptarr = {
-      #     icon = "readarr";
-      #     href = "https://chaptarr.marcel.cool";
-      #     description = "Book Management";
-      #   };
-      # }
     ];
   };
 
