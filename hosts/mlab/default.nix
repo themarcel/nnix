@@ -4,7 +4,79 @@
   lib,
   inputs,
   ...
-}: {
+}: let
+  ports = {
+    openwebui = 3000;
+    navidrome = 4533;
+    slskd = 5030;
+    soulbeet = 9765;
+    jellyfin = 8096;
+    qbit = 8081;
+    sonarr = 8989;
+    radarr = 7878;
+    lidarr = 8686;
+    sabnzbd = 8080;
+    prowlarr = 9696;
+    home = 8082;
+    bazarr = 6767;
+    immich = 2283;
+    seerr = 5055;
+    chaptarr = 8789;
+    calibre = 8083;
+    audiobooks = 8000;
+    status = 3001;
+    netdata = 19999;
+  };
+
+  services = {
+    "ai.marcel.cool" = ports.openwebui;
+    "music.marcel.cool" = ports.navidrome;
+    "slskd.marcel.cool" = ports.slskd;
+    "soulbeet.marcel.cool" = ports.soulbeet;
+    "jellyfin.marcel.cool" = ports.jellyfin;
+    "qbit.marcel.cool" = ports.qbit;
+    "sonarr.marcel.cool" = ports.sonarr;
+    "radarr.marcel.cool" = ports.radarr;
+    "lidarr.marcel.cool" = ports.lidarr;
+    "sabnzbd.marcel.cool" = ports.sabnzbd;
+    "prowlarr.marcel.cool" = ports.prowlarr;
+    "home.marcel.cool" = ports.home;
+    "bazarr.marcel.cool" = ports.bazarr;
+    "img.marcel.cool" = ports.immich;
+    "seerr.marcel.cool" = ports.seerr;
+    "chaptarr.marcel.cool" = ports.chaptarr;
+    "calibre.marcel.cool" = ports.calibre;
+    "audiobooks.marcel.cool" = ports.audiobooks;
+    "status.marcel.cool" = ports.status;
+    "netdata.marcel.cool" = ports.netdata;
+  };
+
+  mkProxyHost = hostname: port: {
+    listen = [
+      {
+        addr = "127.0.0.1";
+        port = 80;
+      }
+    ];
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${toString port}";
+      proxyWebsockets = true;
+      extraConfig = ''
+        proxy_connect_timeout 3s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+        error_page 502 503 504 = @maintenance;
+      '';
+    };
+    extraConfig = ''
+      location @maintenance {
+        return 307 https://maintenance.marcel.cool?from=${hostname};
+      }
+    '';
+  };
+
+  serviceVirtualHosts = lib.mapAttrs mkProxyHost services;
+in {
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
@@ -65,7 +137,7 @@
         WebUI\Username=${config.sops.placeholder.web_user}
         WebUI\Password_PBKDF2="@ByteArray(${config.sops.placeholder.qbit_password_hash})"
         WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
-        WebUI\Port=8081
+        WebUI\Port=${toString ports.qbit}
         WebUI\AuthSubnetWhitelist=127.0.0.1/32
         Connection\AddressFamily=Both
         Connection\Interface=enp87s0
@@ -139,24 +211,28 @@
 
   services.nginx = {
     enable = true;
-    virtualHosts."_" = {
-      default = true;
-      listen = [
-        {
-          addr = "0.0.0.0";
-          port = 80;
-        }
-      ];
-      root = ./maintenance;
-      locations."/" = {
-        tryFiles = "$uri /index.html";
+
+    virtualHosts =
+      serviceVirtualHosts
+      // {
+        "_" = {
+          default = true;
+          listen = [
+            {
+              addr = "127.0.0.1";
+              port = 80;
+            }
+          ];
+          locations."/" = {
+            return = "307 https://maintenance.marcel.cool";
+          };
+        };
       };
-    };
   };
 
   services.audiobookshelf = {
     enable = true;
-    port = 8000;
+    port = ports.audiobooks;
     openFirewall = true;
   };
   users.users.audiobookshelf = {
@@ -253,11 +329,13 @@
   services.qbittorrent = {
     enable = true;
     openFirewall = true;
-    webuiPort = 8081;
+    webuiPort = ports.qbit;
   };
   systemd.services.qbittorrent.preStart = ''
     mkdir -p /var/lib/qbittorrent/.config/qBittorrent
-    cp -f ${config.sops.templates."qBittorrent.conf".path} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    cp -f ${
+      config.sops.templates."qBittorrent.conf".path
+    } /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
     # Use the specific user/group from the config to avoid "Invalid Argument"
     chown ${config.services.qbittorrent.user}:${config.services.qbittorrent.group} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
     chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
@@ -319,7 +397,7 @@
   services.open-webui = {
     enable = true;
     host = "0.0.0.0";
-    port = 3000;
+    port = ports.openwebui;
   };
 
   services.ddclient = {
@@ -340,11 +418,11 @@
 
   sops.templates."soulbeet.env".content = ''
     # Connection to Slskd
-    SLSKD_URL=http://127.0.0.1:5030
+    SLSKD_URL=http://127.0.0.1:${toString ports.slskd}
     # SLSKD_API_KEY=slskdAPIkey9988776655aabbccdd
 
     # Connection to Navidrome
-    NAVIDROME_URL=http://127.0.0.1:4533
+    NAVIDROME_URL=http://127.0.0.1:${toString ports.navidrome}
     NAVIDROME_USERNAME=${config.sops.placeholder.web_user}
     NAVIDROME_PASSWORD=${config.sops.placeholder.web_pass}
 
@@ -384,7 +462,7 @@
     ];
     environment = {
       TZ = config.time.timeZone;
-      PORT = "5055";
+      PORT = toString ports.seerr;
     };
     extraOptions = [
       "--network=host"
@@ -419,28 +497,7 @@
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = config.sops.templates."tunnel.json".path;
         default = "http://127.0.0.1:80";
-        ingress = {
-          "ai.marcel.cool" = "http://127.0.0.1:3000";
-          "music.marcel.cool" = "http://127.0.0.1:4533";
-          "slskd.marcel.cool" = "http://127.0.0.1:5030";
-          "soulbeet.marcel.cool" = "http://127.0.0.1:9765";
-          "jellyfin.marcel.cool" = "http://127.0.0.1:8096";
-          "qbit.marcel.cool" = "http://127.0.0.1:8081";
-          "sonarr.marcel.cool" = "http://127.0.0.1:8989";
-          "radarr.marcel.cool" = "http://127.0.0.1:7878";
-          "lidarr.marcel.cool" = "http://127.0.0.1:8686";
-          "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
-          "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
-          "home.marcel.cool" = "http://127.0.0.1:8082";
-          "bazarr.marcel.cool" = "http://127.0.0.1:6767";
-          "img.marcel.cool" = "http://127.0.0.1:2283";
-          "seerr.marcel.cool" = "http://127.0.0.1:5055";
-          "chaptarr.marcel.cool" = "http://127.0.0.1:8789";
-          "calibre.marcel.cool" = "http://127.0.0.1:8083";
-          "audiobooks.marcel.cool" = "http://127.0.0.1:8000";
-          "status.marcel.cool" = "http://127.0.0.1:3001";
-          "netdata.marcel.cool" = "http://127.0.0.1:19999";
-        };
+        ingress = lib.mapAttrs (hostname: port: "http://127.0.0.1:80") services;
       };
     };
   };
@@ -469,7 +526,7 @@
         listen_port = 50300;
       };
       web = {
-        port = 5030;
+        port = ports.slskd;
         address = "0.0.0.0";
         authentication = {
           api_keys = {
@@ -494,7 +551,7 @@
     settings = {
       DataFolder = "/var/lib/navidrome";
       Address = "0.0.0.0";
-      Port = 4533;
+      Port = ports.navidrome;
       MusicFolder = "/var/lib/slskd/music/share";
       DB = {
         Type = "postgres";
@@ -544,31 +601,14 @@
     tempAddresses = "enabled";
     firewall = {
       enable = true;
-      allowedTCPPorts = [
-        80 # nginx catch-all
-        29888 # Qbitorrent
-        3000 # Openwebui
-        2283 # Immich
-        5030 # slskd
-        50300 # Soulseek
-        4533 # Navidrome
-        9765 # Soulbeet
-        8096 # Jellyfin HTTP
-        8081 # qBittorrent WebUI
-        8080 # SABnzbd
-        9117 # Jackett
-        8989 # Sonarr
-        7878 # Radarr
-        9696 # Prowlarr
-        6767 # Bazarr
-        8082 # Homepage Dashboard
-        5055 # Seerr
-        8789 # Chaptarr
-        8083 # Calibre Web
-        8000 # Audiobookshelf
-        19999 # Netdata
-        3001 # Uptime Kuma
-      ];
+      allowedTCPPorts =
+        [
+          80 # nginx catch-all
+          29888 # Qbitorrent
+          50300 # Soulseek
+          9117 # Jackett
+        ]
+        ++ (builtins.attrValues ports);
       allowedUDPPorts = [29888];
       allowedUDPPortRanges = [
         {
@@ -578,8 +618,8 @@
       ];
       extraCommands = ''
         # Allow traffic from Podman containers to the host
-        iptables -A INPUT -i podman+ -p tcp --dport 5030 -j ACCEPT
-        iptables -A INPUT -i podman+ -p tcp --dport 4533 -j ACCEPT
+        iptables -A INPUT -i podman+ -p tcp --dport ${toString ports.slskd} -j ACCEPT
+        iptables -A INPUT -i podman+ -p tcp --dport ${toString ports.navidrome} -j ACCEPT
       '';
       trustedInterfaces = ["podman0"];
     };
@@ -607,7 +647,7 @@
       };
       server = {
         host = "0.0.0.0";
-        port = 8080;
+        port = ports.sabnzbd;
       };
     };
     allowConfigWrite = true;
@@ -678,7 +718,10 @@
   # Force 10Gbps and disable auto-negotiation on the X710 interface
   systemd.services.ethtool-force-10g = {
     description = "Force 10Gbps and disable autoneg on enp2s0f0np0";
-    after = ["network-pre.target" "sys-subsystem-net-devices-enp2s0f0np0.device"];
+    after = [
+      "network-pre.target"
+      "sys-subsystem-net-devices-enp2s0f0np0.device"
+    ];
     wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
     wantedBy = ["multi-user.target"];
     serviceConfig = {
@@ -793,7 +836,7 @@
   services.immich = {
     enable = true;
     host = "0.0.0.0";
-    port = 2283;
+    port = ports.immich;
   };
 
   services.bazarr = {
@@ -868,7 +911,7 @@
 
   services.homepage-dashboard = {
     enable = true;
-    listenPort = 8082;
+    listenPort = ports.home;
     environmentFiles = [config.sops.templates."homepage.env".path];
 
     settings = {
@@ -902,8 +945,12 @@
       }
       {
         netdata = {
-          url = "http://127.0.0.1:19999";
-          states = ["cpu" "mem" "net"];
+          url = "http://127.0.0.1:${toString ports.netdata}";
+          states = [
+            "cpu"
+            "mem"
+            "net"
+          ];
         };
       }
     ];
@@ -918,7 +965,7 @@
               description = "Music Streamer";
               widget = {
                 type = "navidrome";
-                url = "http://127.0.0.1:4533";
+                url = "http://127.0.0.1:${toString ports.navidrome}";
                 user = "{{HOMEPAGE_VAR_WEB_USER}}";
                 salt = "{{HOMEPAGE_VAR_NAVIDROME_SALT}}";
                 token = "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}";
@@ -932,7 +979,7 @@
               description = "Video Server";
               widget = {
                 type = "jellyfin";
-                url = "http://127.0.0.1:8096";
+                url = "http://127.0.0.1:${toString ports.jellyfin}";
                 key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
               };
             };
@@ -982,7 +1029,7 @@
               href = "https://sonarr.marcel.cool";
               widget = {
                 type = "sonarr";
-                url = "http://127.0.0.1:8989";
+                url = "http://127.0.0.1:${toString ports.sonarr}";
                 key = "{{HOMEPAGE_VAR_SONARR_API}}";
               };
             };
@@ -993,7 +1040,7 @@
               href = "https://radarr.marcel.cool";
               widget = {
                 type = "radarr";
-                url = "http://127.0.0.1:7878";
+                url = "http://127.0.0.1:${toString ports.radarr}";
                 key = "{{HOMEPAGE_VAR_RADARR_API}}";
               };
             };
@@ -1004,7 +1051,7 @@
               href = "https://lidarr.marcel.cool";
               widget = {
                 type = "lidarr";
-                url = "http://127.0.0.1:8686";
+                url = "http://127.0.0.1:${toString ports.lidarr}";
                 key = "{{HOMEPAGE_VAR_LIDARR_API}}";
               };
             };
@@ -1015,7 +1062,7 @@
               href = "https://prowlarr.marcel.cool";
               widget = {
                 type = "prowlarr";
-                url = "http://127.0.0.1:9696";
+                url = "http://127.0.0.1:${toString ports.prowlarr}";
                 key = "{{HOMEPAGE_VAR_PROWLARR_API}}";
               };
             };
@@ -1026,7 +1073,7 @@
               href = "https://qbit.marcel.cool";
               widget = {
                 type = "qbittorrent";
-                url = "http://127.0.0.1:8081";
+                url = "http://127.0.0.1:${toString ports.qbit}";
                 username = "{{HOMEPAGE_VAR_WEB_USER}}";
                 password = "{{HOMEPAGE_VAR_WEB_PASS}}";
               };
@@ -1038,7 +1085,7 @@
               href = "https://sabnzbd.marcel.cool";
               widget = {
                 type = "sabnzbd";
-                url = "http://127.0.0.1:8080";
+                url = "http://127.0.0.1:${toString ports.sabnzbd}";
                 key = "{{HOMEPAGE_VAR_SABNZBD_API}}";
               };
             };
@@ -1049,7 +1096,7 @@
               href = "https://bazarr.marcel.cool";
               widget = {
                 type = "bazarr";
-                url = "http://127.0.0.1:6767";
+                url = "http://127.0.0.1:${toString ports.bazarr}";
                 key = "{{HOMEPAGE_VAR_BAZARR_API}}";
               };
             };
@@ -1061,7 +1108,7 @@
               description = "Media Requests";
               widget = {
                 type = "seerr";
-                url = "http://127.0.0.1:5055";
+                url = "http://127.0.0.1:${toString ports.seerr}";
                 key = "{{HOMEPAGE_VAR_SEERR_API}}";
               };
             };
@@ -1073,7 +1120,7 @@
               description = "Photo Management";
               widget = {
                 type = "immich";
-                url = "http://127.0.0.1:2283";
+                url = "http://127.0.0.1:${toString ports.immich}";
                 key = "{{HOMEPAGE_VAR_IMMICH_API}}";
                 version = 2;
               };
