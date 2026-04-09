@@ -69,7 +69,6 @@
         WebUI\AuthSubnetWhitelist=127.0.0.1/32
         Connection\AddressFamily=Both
         Connection\Interface=enp87s0
-        Connection\InterfaceAddress=2a0c:5a83:540a:ad00::100
       '';
       owner = "qbittorrent";
       group = "media";
@@ -331,7 +330,8 @@
     username = "token";
     passwordFile = config.sops.secrets.cloudflare_ddclient_token.path;
     domains = ["ssh.marcel.cool"];
-    usev4 = "webv4, webv4=cloudflare";
+    usev4 = "webv4, webv4=ifconfig.me";
+    usev6 = "webv6, webv6=api6.ipify.org";
     ssl = true;
   };
 
@@ -509,26 +509,17 @@
     "/var/lib/slskd/music/share"
   ];
 
-  boot.kernel.sysctl = {
-    "net.ipv6.conf.enp87s0.accept_ra" = 0;
-    "net.ipv6.conf.enp87s0.autoconf" = 0;
-  };
-
   networking = {
     hostName = "mlab";
     defaultGateway = "192.168.1.1";
+
     interfaces = {
       enp87s0 = {
+        useDHCP = true;
         ipv4.addresses = [
           {
             address = "192.168.1.140";
             prefixLength = 24;
-          }
-        ];
-        ipv6.addresses = [
-          {
-            address = "2a0c:5a83:540a:ad00::100";
-            prefixLength = 64;
           }
         ];
       };
@@ -538,6 +529,13 @@
       enp2s0f1np1 = {
         useDHCP = true;
       };
+    };
+    dhcpcd = {
+      extraConfig = ''
+        slaac private
+        interface enp87s0
+        noipv4
+      '';
     };
     nameservers = [
       "1.1.1.1"
@@ -871,7 +869,7 @@
   services.homepage-dashboard = {
     enable = true;
     listenPort = 8082;
-    environmentFile = config.sops.templates."homepage.env".path;
+    environmentFiles = [config.sops.templates."homepage.env".path];
 
     settings = {
       title = "Mlab Dashboard";
