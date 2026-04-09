@@ -109,6 +109,35 @@
     };
   };
 
+  services.netdata = {
+    enable = true;
+    package = pkgs.netdata.override {
+      withCloudUi = true;
+    };
+
+    config = {
+      global = {
+        "memory mode" = "dbengine";
+        "error log" = "syslog";
+      };
+
+      web = {
+        "bind to" = "0.0.0.0";
+        "allow connections from" = "localhost 127.0.0.1 192.168.1.*";
+        "allow dashboard from" = "localhost 127.0.0.1 192.168.1.*";
+        "trust proxy" = "yes";
+      };
+
+      plugins = {
+        "freeipmi" = "no";
+      };
+    };
+  };
+
+  users.users.netdata.extraGroups = ["podman"];
+
+  services.uptime-kuma.enable = true;
+
   services.nginx = {
     enable = true;
     virtualHosts."_" = {
@@ -124,6 +153,15 @@
         tryFiles = "$uri /index.html";
       };
     };
+  };
+
+  services.audiobookshelf = {
+    enable = true;
+    port = 8000;
+    openFirewall = true;
+  };
+  users.users.audiobookshelf = {
+    extraGroups = ["media"];
   };
 
   virtualisation.oci-containers.containers.calibre-web-automated = {
@@ -153,6 +191,7 @@
   users.groups.calibre = {
     gid = 951;
   };
+  users.groups.media.gid = 986;
 
   services.sonarr = {
     enable = true;
@@ -160,7 +199,7 @@
   };
 
   systemd.tmpfiles.rules = [
-    # soulbeet and slskd
+    # Soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
     "d /var/lib/slskd/music 0755 slskd slskd -"
@@ -168,26 +207,37 @@
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
 
-    # shared media stack
-    # we use root:media so every app in the media group has rwx access
+    # Shared Media Stack Base
     "d /var/lib/media 0775 root media -"
+
+    # Set GID 2775 on download and import folders ensures
+    # that files created by one app are writable by the whole 'media' group.
     "d /var/lib/media/downloads 2775 root media -"
     "d /var/lib/media/downloads/incomplete 0775 root media -"
+
+    # Media Folders
     "d /var/lib/media/tv 0775 root media -"
     "d /var/lib/media/movies 0775 root media -"
     "d /var/lib/media/music 0775 root media -"
+    "d /var/lib/media/audiobooks 2775 root media -"
+
+    # Books & Calibre Stack
+    # We give 'calibre' primary ownership, but 'media' group rwx access
+    "d /var/lib/media/books 0775 calibre media -"
+    "d /var/lib/media/books/import 2775 calibre media -"
+    "d /var/lib/calibre-web-automated/config 0775 calibre media -"
+
+    # Service Specific
     "d /var/lib/slskd/music/share 0775 slskd media -"
     "d /var/lib/seerr 0775 1000 media -"
-    "d /var/lib/media/books 0775 root media -"
-    "d /var/lib/media/audiobooks 0775 root media -"
     "d /var/lib/chaptarr 0775 chaptarr media -"
-    "d /var/lib/calibre-web-automated/config 0775 calibre media -"
-    "d /var/lib/media/books 0775 calibre media -"
-    "d /var/lib/media/books/import 0775 calibre media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
     "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
+
+    # netdata fix
+    "d /tmp/netdata 0755 netdata netdata -"
   ];
 
   services.jellyfin = {
@@ -347,7 +397,7 @@
     volumes = [
       "/var/lib/chaptarr:/config"
       "/var/lib/media/books:/books"
-      "/var/lib/media/audiobooks:/audiobooks"
+      "/var/lib/media/audiobooks:/var/lib/media/audiobooks"
       "/var/lib/media/downloads:/var/lib/media/downloads"
       "/var/lib/media/books/import:/import"
     ];
@@ -387,6 +437,9 @@
           "seerr.marcel.cool" = "http://127.0.0.1:5055";
           "chaptarr.marcel.cool" = "http://127.0.0.1:8789";
           "calibre.marcel.cool" = "http://127.0.0.1:8083";
+          "audiobooks.marcel.cool" = "http://127.0.0.1:8000";
+          "status.marcel.cool" = "http://127.0.0.1:3001";
+          "netdata.marcel.cool" = "http://127.0.0.1:19999";
         };
       };
     };
@@ -463,8 +516,15 @@
 
   networking = {
     hostName = "mlab";
+    defaultGateway = "192.168.1.1";
     interfaces = {
       enp87s0 = {
+        ipv4.addresses = [
+          {
+            address = "192.168.1.140";
+            prefixLength = 24;
+          }
+        ];
         ipv6.addresses = [
           {
             address = "2a0c:5a83:540a:ad00::100";
@@ -507,6 +567,9 @@
         5055 # Seerr
         8789 # Chaptarr
         8083 # Calibre Web
+        8000 # Audiobookshelf
+        19999 # Netdata
+        3001 # Uptime Kuma
       ];
       allowedUDPPorts = [29888];
       allowedUDPPortRanges = [
@@ -601,6 +664,8 @@
     sysz
     btop
     ethtool
+    librespeed-cli
+    libreswan
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
@@ -611,6 +676,20 @@
       fi
     '')
   ];
+
+  # Force 10Gbps and disable auto-negotiation on the X710 interface
+  systemd.services.ethtool-force-10g = {
+    description = "Force 10Gbps and disable autoneg on enp2s0f0np0";
+    after = ["network-pre.target" "sys-subsystem-net-devices-enp2s0f0np0.device"];
+    wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+      ExecStart = "-${pkgs.ethtool}/bin/ethtool -s enp2s0f0np0 speed 10000 duplex full autoneg off";
+      RemainAfterExit = true;
+    };
+  };
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
@@ -823,6 +902,12 @@
           disk = "/";
         };
       }
+      {
+        netdata = {
+          url = "http://127.0.0.1:19999";
+          states = ["cpu" "mem" "net"];
+        };
+      }
     ];
 
     services = [
@@ -873,6 +958,27 @@
       {
         "Arr" = [
           {
+            Chaptarr = {
+              icon = "readarr";
+              href = "https://chaptarr.marcel.cool";
+              description = "Book Management";
+            };
+          }
+          {
+            Calibre = {
+              icon = "book";
+              href = "https://calibre.marcel.cool";
+              description = "Book Library";
+            };
+          }
+          {
+            Audiobookshelf = {
+              icon = "audiobookshelf";
+              href = "https://audiobooks.marcel.cool";
+              description = "Audiobook Server";
+            };
+          }
+          {
             Sonarr = {
               icon = "sonarr";
               href = "https://sonarr.marcel.cool";
@@ -881,13 +987,6 @@
                 url = "http://127.0.0.1:8989";
                 key = "{{HOMEPAGE_VAR_SONARR_API}}";
               };
-            };
-          }
-          {
-            Chaptarr = {
-              icon = "readarr";
-              href = "https://chaptarr.marcel.cool";
-              description = "Book Management";
             };
           }
           {
@@ -958,7 +1057,7 @@
             };
           }
           {
-            "Seerr" = {
+            Seerr = {
               icon = "seerr";
               href = "https://seerr.marcel.cool";
               description = "Media Requests";
@@ -970,7 +1069,7 @@
             };
           }
           {
-            "Immich" = {
+            Immich = {
               icon = "immich";
               href = "https://img.marcel.cool";
               description = "Photo Management";
@@ -980,20 +1079,6 @@
                 key = "{{HOMEPAGE_VAR_IMMICH_API}}";
                 version = 2;
               };
-            };
-          }
-          {
-            "Chaptarr" = {
-              icon = "readarr";
-              href = "https://chaptarr.marcel.cool";
-              description = "Book Requests";
-            };
-          }
-          {
-            "Calibre" = {
-              icon = "book";
-              href = "https://calibre.marcel.cool";
-              description = "Book Library";
             };
           }
         ];

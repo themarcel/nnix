@@ -210,9 +210,9 @@
     };
   };
 
-  services.ollama = {
-    enable = true;
-  };
+  # services.ollama = {
+  #   enable = true;
+  # };
 
   systemd.services.ollama.environment = {
     OLLAMA_CONTEXT_LENGTH = "32768";
