@@ -15,7 +15,6 @@
     jellyfin = 8096;
     lidarr = 8686;
     navidrome = 4533;
-    netdata = 19999;
     openwebui = 3000;
     prowlarr = 9696;
     qbit = 8081;
@@ -40,7 +39,6 @@
     "jellyfin.marcel.cool" = ports.jellyfin;
     "lidarr.marcel.cool" = ports.lidarr;
     "music.marcel.cool" = ports.navidrome;
-    "netdata.marcel.cool" = ports.netdata;
     "prowlarr.marcel.cool" = ports.prowlarr;
     "qbit.marcel.cool" = ports.qbit;
     "radarr.marcel.cool" = ports.radarr;
@@ -151,6 +149,9 @@ in {
         WebUI\AuthSubnetWhitelist=127.0.0.1/32,192.168.1.0/24
         Connection\AddressFamily=Both
         Connection\Interface=enp87s0
+        Downloads\SavePath=/var/lib/media/downloads/
+        Session\DefaultSavePath=/var/lib/media/downloads/
+        Session\TempPath=/var/lib/media/downloads/incomplete/
       '';
       owner = "qbittorrent";
       group = "media";
@@ -191,33 +192,6 @@ in {
       '';
     };
   };
-
-  services.netdata = {
-    enable = true;
-    package = pkgs.netdata.override {
-      withCloudUi = true;
-    };
-
-    config = {
-      global = {
-        "memory mode" = "dbengine";
-        "error log" = "syslog";
-      };
-
-      web = {
-        "bind to" = "0.0.0.0";
-        "allow connections from" = "localhost 127.0.0.1 192.168.1.*";
-        "allow dashboard from" = "localhost 127.0.0.1 192.168.1.*";
-        "trust proxy" = "yes";
-      };
-
-      plugins = {
-        "freeipmi" = "no";
-      };
-    };
-  };
-
-  users.users.netdata.extraGroups = ["podman"];
 
   services.uptime-kuma.enable = true;
 
@@ -301,7 +275,7 @@ in {
     # Set GID 2775 on download and import folders ensures
     # that files created by one app are writable by the whole 'media' group.
     "d /var/lib/media/downloads 2775 root media -"
-    "d /var/lib/media/downloads/incomplete 0775 root media -"
+    "d /var/lib/media/downloads/incomplete 2775 root media -"
 
     # Media Folders
     "d /var/lib/media/tv 0775 root media -"
@@ -321,16 +295,15 @@ in {
     "d /var/lib/chaptarr 0775 chaptarr media -"
 
     # SABnzbd
+    "d /var/lib/sabnzbd 0775 sabnzbd media -"
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
     "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
 
     # qbit
+    "d /var/lib/qbittorrent 0775 qbittorrent media -"
     "d /var/lib/qbittorrent 0750 qbittorrent qbittorrent -"
     "d /var/lib/qbittorrent/.config 0750 qbittorrent qbittorrent -"
     "d /var/lib/qbittorrent/.config/qBittorrent 0750 qbittorrent qbittorrent -"
-
-    # netdata fix
-    "d /tmp/netdata 0755 netdata netdata -"
   ];
 
   services.jellyfin = {
@@ -477,8 +450,8 @@ in {
     volumes = [
       "/var/lib/chaptarr:/config"
       "/var/lib/media/books:/books"
-      "/var/lib/media/audiobooks:/var/lib/media/audiobooks"
-      "/var/lib/media/downloads:/var/lib/media/downloads"
+      "/var/lib/media/audiobooks:/audiobooks"
+      "/var/lib/media/downloads:/downloads"
       "/var/lib/media/books/import:/import"
     ];
     environment = {
@@ -948,16 +921,6 @@ in {
           cpu = true;
           memory = true;
           disk = "/";
-        };
-      }
-      {
-        netdata = {
-          url = "http://127.0.0.1:${toString ports.netdata}";
-          states = [
-            "cpu"
-            "mem"
-            "net"
-          ];
         };
       }
     ];
