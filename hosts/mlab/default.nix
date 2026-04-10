@@ -90,6 +90,7 @@ in {
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
     ./seafile.nix
+    ./arr
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -423,16 +424,11 @@ in {
   virtualisation.oci-containers.backend = "podman";
 
   sops.templates."soulbeet.env".content = ''
-    # Connection to Slskd
     SLSKD_URL=http://127.0.0.1:${toString ports.slskd}
-    # SLSKD_API_KEY=slskdAPIkey9988776655aabbccdd
-
-    # Connection to Navidrome
+    # SLSKD_API_KEY=${config.sops.placeholder.slskd_api_key}
     NAVIDROME_URL=http://127.0.0.1:${toString ports.navidrome}
     NAVIDROME_USERNAME=${config.sops.placeholder.web_user}
     NAVIDROME_PASSWORD=${config.sops.placeholder.web_pass}
-
-    # Soulbeet Internal
     SECRET_KEY=${config.sops.placeholder.soulbeet_secret_key}
     DATABASE_URL=sqlite:/data/soulbeet.db
     DOWNLOAD_PATH=/var/lib/slskd/music/downloads
