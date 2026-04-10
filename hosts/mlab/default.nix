@@ -296,12 +296,10 @@ in {
 
     # SABnzbd
     "d /var/lib/sabnzbd 0775 sabnzbd media -"
-    "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
     "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
 
     # qbit
     "d /var/lib/qbittorrent 0775 qbittorrent media -"
-    "d /var/lib/qbittorrent 0750 qbittorrent qbittorrent -"
     "d /var/lib/qbittorrent/.config 0750 qbittorrent qbittorrent -"
     "d /var/lib/qbittorrent/.config/qBittorrent 0750 qbittorrent qbittorrent -"
   ];
