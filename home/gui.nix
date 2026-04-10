@@ -14,6 +14,7 @@ in {
 
   home.packages = with pkgs; [
     audio-select
+    jellyfin-desktop
     blesh
     winetricks
     font-awesome

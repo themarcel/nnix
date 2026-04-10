@@ -243,6 +243,22 @@
     pulse.enable = true;
     wireplumber.enable = true;
   };
+
+  # Enable Bluetooth codecs in PipeWire
+  services.pipewire.extraConfig.pipewire = {
+    "context.modules" = [
+      {
+        name = "libpipewire-module-bluez5";
+        args = {
+          "bluez5.codecs" = [
+            "sbc"
+            "aac"
+            "ldac"
+          ];
+        };
+      }
+    ];
+  };
   # services.udev.packages = [pkgs.mixxx];
   musnix.enable = false;
 
@@ -372,14 +388,30 @@
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "SLSKD_SLSK_USERNAME" = {owner = username;};
-      "SLSKD_SLSK_PASSWORD" = {owner = username;};
-      "SLSKD_SOULSEEK_PASSWORD" = {owner = username;};
-      "SLSKD_WEB_USERNAME" = {owner = username;};
-      "SLSKD_WEB_PASSWORD" = {owner = username;};
-      "SLSKD_USERNAME" = {owner = username;};
-      "SLSKD_PASSWORD" = {owner = username;};
-      "cachix_token" = {owner = username;};
+      "SLSKD_SLSK_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_SLSK_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_SOULSEEK_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_WEB_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_WEB_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_PASSWORD" = {
+        owner = username;
+      };
+      "cachix_token" = {
+        owner = username;
+      };
     };
 
     templates."slskd.env" = {

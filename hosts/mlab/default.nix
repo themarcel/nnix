@@ -6,55 +6,57 @@
   ...
 }: let
   ports = {
-    openwebui = 3000;
-    navidrome = 4533;
-    slskd = 5030;
-    soulbeet = 9765;
-    jellyfin = 8096;
-    qbit = 8081;
-    sonarr = 8989;
-    radarr = 7878;
-    lidarr = 8686;
-    sabnzbd = 8080;
-    prowlarr = 9696;
-    home = 8082;
-    bazarr = 6767;
-    immich = 2283;
-    seerr = 5055;
-    chaptarr = 8789;
-    calibre = 8083;
     audiobooks = 8000;
-    status = 3001;
+    bazarr = 6767;
+    calibre = 8083;
+    chaptarr = 8789;
+    home = 8082;
+    immich = 2283;
+    jellyfin = 8096;
+    lidarr = 8686;
+    navidrome = 4533;
     netdata = 19999;
+    openwebui = 3000;
+    prowlarr = 9696;
+    qbit = 8081;
+    radarr = 7878;
+    sabnzbd = 8080;
+    seahub = 8008;
+    seerr = 5055;
+    slskd = 5030;
+    sonarr = 8989;
+    soulbeet = 9765;
+    status = 3001;
   };
 
   services = {
     "ai.marcel.cool" = ports.openwebui;
-    "music.marcel.cool" = ports.navidrome;
-    "slskd.marcel.cool" = ports.slskd;
-    "soulbeet.marcel.cool" = ports.soulbeet;
-    "jellyfin.marcel.cool" = ports.jellyfin;
-    "qbit.marcel.cool" = ports.qbit;
-    "sonarr.marcel.cool" = ports.sonarr;
-    "radarr.marcel.cool" = ports.radarr;
-    "lidarr.marcel.cool" = ports.lidarr;
-    "sabnzbd.marcel.cool" = ports.sabnzbd;
-    "prowlarr.marcel.cool" = ports.prowlarr;
-    "home.marcel.cool" = ports.home;
-    "bazarr.marcel.cool" = ports.bazarr;
-    "img.marcel.cool" = ports.immich;
-    "seerr.marcel.cool" = ports.seerr;
-    "chaptarr.marcel.cool" = ports.chaptarr;
-    "calibre.marcel.cool" = ports.calibre;
     "audiobooks.marcel.cool" = ports.audiobooks;
-    "status.marcel.cool" = ports.status;
+    "bazarr.marcel.cool" = ports.bazarr;
+    "calibre.marcel.cool" = ports.calibre;
+    "chaptarr.marcel.cool" = ports.chaptarr;
+    "home.marcel.cool" = ports.home;
+    "img.marcel.cool" = ports.immich;
+    "jellyfin.marcel.cool" = ports.jellyfin;
+    "lidarr.marcel.cool" = ports.lidarr;
+    "music.marcel.cool" = ports.navidrome;
     "netdata.marcel.cool" = ports.netdata;
+    "prowlarr.marcel.cool" = ports.prowlarr;
+    "qbit.marcel.cool" = ports.qbit;
+    "radarr.marcel.cool" = ports.radarr;
+    "sabnzbd.marcel.cool" = ports.sabnzbd;
+    "seafile.marcel.cool" = ports.seahub;
+    "seerr.marcel.cool" = ports.seerr;
+    "slskd.marcel.cool" = ports.slskd;
+    "sonarr.marcel.cool" = ports.sonarr;
+    "soulbeet.marcel.cool" = ports.soulbeet;
+    "status.marcel.cool" = ports.status;
   };
 
   mkProxyHost = hostname: port: {
     listen = [
       {
-        addr = "127.0.0.1";
+        addr = "0.0.0.0";
         port = 80;
       }
     ];
@@ -62,6 +64,13 @@
       proxyPass = "http://127.0.0.1:${toString port}";
       proxyWebsockets = true;
       extraConfig = ''
+        # Tell the app what the original URL and IP were
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
         proxy_connect_timeout 3s;
         proxy_send_timeout 30s;
         proxy_read_timeout 30s;
@@ -80,6 +89,7 @@ in {
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
+    ./seafile.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -91,38 +101,38 @@ in {
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "slsk_user" = {};
-      "slsk_pass" = {};
-      "web_user" = {};
-      "web_pass" = {};
-      "app_user" = {};
       "app_pass" = {};
-      "josep_password" = {
-        neededForUsers = true;
-      };
+      "app_user" = {};
+      "bazarr_api" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
       };
-      "slskd_api_key" = {};
-      "soulbeet_secret_key" = {};
       "cloudflared_tunnel_json" = {
         owner = "cloudflared";
         group = "cloudflared";
       };
-      "sonarr_api" = {};
-      "radarr_api" = {};
-      "lidarr_api" = {};
-      "prowlarr_api" = {};
-      "sabnzbd_api" = {};
+      "immich_api" = {};
       "jellyfin_api" = {};
-      "navidrome_token" = {};
+      "josep_password" = {
+        neededForUsers = true;
+      };
+      "lidarr_api" = {};
       "navidrome_salt" = {};
+      "navidrome_token" = {};
+      "prowlarr_api" = {};
       "qbit_password_hash" = {};
       "qbit_password_salt" = {};
-      "bazarr_api" = {};
-      "immich_api" = {};
+      "radarr_api" = {};
+      "sabnzbd_api" = {};
       "seerr_api" = {};
+      "slsk_pass" = {};
+      "slsk_user" = {};
+      "slskd_api_key" = {};
+      "sonarr_api" = {};
+      "soulbeet_secret_key" = {};
+      "web_pass" = {};
+      "web_user" = {};
     };
 
     templates."tunnel.json" = {
@@ -135,10 +145,9 @@ in {
       content = ''
         [Preferences]
         WebUI\Username=${config.sops.placeholder.web_user}
-        WebUI\Password_PBKDF2="@ByteArray(${config.sops.placeholder.qbit_password_hash})"
-        WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
         WebUI\Port=${toString ports.qbit}
-        WebUI\AuthSubnetWhitelist=127.0.0.1/32
+        WebUI\LocalHostAuthentication=false
+        WebUI\AuthSubnetWhitelist=127.0.0.1/32,192.168.1.0/24
         Connection\AddressFamily=Both
         Connection\Interface=enp87s0
       '';
@@ -148,6 +157,8 @@ in {
 
     templates."slskd-mlab.env" = {
       content = ''
+        APP_DIR=/var/lib/slskd
+
         SLSKD_SLSK_USERNAME='${config.sops.placeholder.slsk_user}'
         SLSKD_SLSK_PASSWORD='${config.sops.placeholder.slsk_pass}'
 
@@ -211,6 +222,7 @@ in {
 
   services.nginx = {
     enable = true;
+    clientMaxBodySize = "0";
 
     virtualHosts =
       serviceVirtualHosts
@@ -219,7 +231,7 @@ in {
           default = true;
           listen = [
             {
-              addr = "127.0.0.1";
+              addr = "0.0.0.0";
               port = 80;
             }
           ];
@@ -311,6 +323,11 @@ in {
     "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
     "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
 
+    # qbit
+    "d /var/lib/qbittorrent 0750 qbittorrent qbittorrent -"
+    "d /var/lib/qbittorrent/.config 0750 qbittorrent qbittorrent -"
+    "d /var/lib/qbittorrent/.config/qBittorrent 0750 qbittorrent qbittorrent -"
+
     # netdata fix
     "d /tmp/netdata 0755 netdata netdata -"
   ];
@@ -332,30 +349,19 @@ in {
     webuiPort = ports.qbit;
   };
   systemd.services.qbittorrent.preStart = ''
-    mkdir -p /var/lib/qbittorrent/.config/qBittorrent
-    cp -f ${
-      config.sops.templates."qBittorrent.conf".path
-    } /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-    # Use the specific user/group from the config to avoid "Invalid Argument"
-    chown ${config.services.qbittorrent.user}:${config.services.qbittorrent.group} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    # The directory structure is guaranteed by systemd.tmpfiles.rules
+    cp -f ${config.sops.templates."qBittorrent.conf".path} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    # Ensure correct permissions for the copied config
     chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
   '';
 
   systemd.services.ddclient.after = ["nss-user-lookup.target"];
   systemd.services.slskd.serviceConfig = {
-    ProtectSystem = lib.mkForce false;
-    PrivateTmp = lib.mkForce false;
-    ProtectHome = lib.mkForce false;
-    PrivateDevices = lib.mkForce false;
-    ProtectKernelTunables = lib.mkForce false;
-    ProtectKernelModules = lib.mkForce false;
-    ProtectControlGroups = lib.mkForce false;
-    RestrictNamespaces = lib.mkForce false;
-    ReadWritePaths = lib.mkForce [
-      "/var/lib/slskd"
-      "/var/lib/slskd/music"
-      "/etc/slskd"
-    ];
+    Restart = lib.mkForce "always";
+    RestartSec = "5s";
+    StateDirectory = "slskd";
+    WorkingDirectory = "/var/lib/slskd";
+    UMask = "0022";
   };
 
   services.postgresql = {
@@ -684,6 +690,7 @@ in {
   environment.systemPackages = with pkgs; [
     git
     vim
+    lsof
     tree
     git
     duf
@@ -920,17 +927,21 @@ in {
       theme = "dark";
       useEqualHeights = true;
       layout = {
-        "Media & Audio" = {
+        "Media" = {
+          style = "row";
+          columns = 4;
+        };
+        "Automation" = {
+          style = "row";
+          columns = 4;
+        };
+        "Downloads" = {
           style = "row";
           columns = 3;
         };
-        "Arr" = {
+        "Infrastructure" = {
           style = "row";
           columns = 3;
-        };
-        "Tools" = {
-          style = "row";
-          columns = 2;
         };
       };
     };
@@ -957,7 +968,19 @@ in {
 
     services = [
       {
-        "Media & Audio" = [
+        "Media" = [
+          {
+            Jellyfin = {
+              icon = "jellyfin";
+              href = "https://jellyfin.marcel.cool";
+              description = "Movies & TV";
+              widget = {
+                type = "jellyfin";
+                url = "http://127.0.0.1:${toString ports.jellyfin}";
+                key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
+              };
+            };
+          }
           {
             Navidrome = {
               icon = "navidrome";
@@ -973,54 +996,46 @@ in {
             };
           }
           {
-            Jellyfin = {
-              icon = "jellyfin";
-              href = "https://jellyfin.marcel.cool";
-              description = "Video Server";
+            Immich = {
+              icon = "immich";
+              href = "https://img.marcel.cool";
+              description = "Photos";
               widget = {
-                type = "jellyfin";
-                url = "http://127.0.0.1:${toString ports.jellyfin}";
-                key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
+                type = "immich";
+                url = "http://127.0.0.1:${toString ports.immich}";
+                key = "{{HOMEPAGE_VAR_IMMICH_API}}";
+                version = 2;
               };
-            };
-          }
-          {
-            Slskd = {
-              icon = "soulseek";
-              href = "https://slskd.marcel.cool";
-              description = "Soulseek Client";
-            };
-          }
-          {
-            Soulbeet = {
-              icon = "music";
-              href = "https://soulbeet.marcel.cool";
-              description = "Library Management";
-            };
-          }
-        ];
-      }
-      {
-        "Arr" = [
-          {
-            Chaptarr = {
-              icon = "readarr";
-              href = "https://chaptarr.marcel.cool";
-              description = "Book Management";
-            };
-          }
-          {
-            Calibre = {
-              icon = "book";
-              href = "https://calibre.marcel.cool";
-              description = "Book Library";
             };
           }
           {
             Audiobookshelf = {
               icon = "audiobookshelf";
               href = "https://audiobooks.marcel.cool";
-              description = "Audiobook Server";
+              description = "Audiobooks";
+            };
+          }
+          {
+            Calibre = {
+              icon = "book";
+              href = "https://calibre.marcel.cool";
+              description = "E-Book Library";
+            };
+          }
+        ];
+      }
+      {
+        "Automation" = [
+          {
+            Seerr = {
+              icon = "seerr";
+              href = "https://seerr.marcel.cool";
+              description = "Requests";
+              widget = {
+                type = "seerr";
+                url = "http://127.0.0.1:${toString ports.seerr}";
+                key = "{{HOMEPAGE_VAR_SEERR_API}}";
+              };
             };
           }
           {
@@ -1057,6 +1072,17 @@ in {
             };
           }
           {
+            Bazarr = {
+              icon = "bazarr";
+              href = "https://bazarr.marcel.cool";
+              widget = {
+                type = "bazarr";
+                url = "http://127.0.0.1:${toString ports.bazarr}";
+                key = "{{HOMEPAGE_VAR_BAZARR_API}}";
+              };
+            };
+          }
+          {
             Prowlarr = {
               icon = "prowlarr";
               href = "https://prowlarr.marcel.cool";
@@ -1067,6 +1093,24 @@ in {
               };
             };
           }
+          {
+            Chaptarr = {
+              icon = "readarr";
+              href = "https://chaptarr.marcel.cool";
+              description = "Audiobook Automation";
+            };
+          }
+          {
+            Soulbeet = {
+              icon = "music";
+              href = "https://soulbeet.marcel.cool";
+              description = "Music Tagging";
+            };
+          }
+        ];
+      }
+      {
+        "Downloads" = [
           {
             qBittorrent = {
               icon = "qbittorrent";
@@ -1091,50 +1135,35 @@ in {
             };
           }
           {
-            Bazarr = {
-              icon = "bazarr";
-              href = "https://bazarr.marcel.cool";
-              widget = {
-                type = "bazarr";
-                url = "http://127.0.0.1:${toString ports.bazarr}";
-                key = "{{HOMEPAGE_VAR_BAZARR_API}}";
-              };
-            };
-          }
-          {
-            Seerr = {
-              icon = "seerr";
-              href = "https://seerr.marcel.cool";
-              description = "Media Requests";
-              widget = {
-                type = "seerr";
-                url = "http://127.0.0.1:${toString ports.seerr}";
-                key = "{{HOMEPAGE_VAR_SEERR_API}}";
-              };
-            };
-          }
-          {
-            Immich = {
-              icon = "immich";
-              href = "https://img.marcel.cool";
-              description = "Photo Management";
-              widget = {
-                type = "immich";
-                url = "http://127.0.0.1:${toString ports.immich}";
-                key = "{{HOMEPAGE_VAR_IMMICH_API}}";
-                version = 2;
-              };
+            Slskd = {
+              icon = "soulseek";
+              href = "https://slskd.marcel.cool";
+              description = "P2P Music";
             };
           }
         ];
       }
       {
-        "Tools" = [
+        "Infrastructure" = [
           {
             "Open WebUI" = {
               icon = "ollama";
               href = "https://ai.marcel.cool";
-              description = "Local LLM Interface";
+              description = "Local AI";
+            };
+          }
+          {
+            Seafile = {
+              icon = "seafile";
+              href = "https://seafile.marcel.cool";
+              description = "File Sync";
+            };
+          }
+          {
+            Status = {
+              icon = "uptime-kuma";
+              href = "https://status.marcel.cool";
+              description = "Uptime Kuma";
             };
           }
         ];
