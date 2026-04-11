@@ -14,7 +14,7 @@
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.efi.canTouchEfiVariables = true;
   nix.settings = {
     max-jobs = "auto";
@@ -97,6 +97,7 @@
       powerOnBoot = true;
       settings = {
         General = {
+          Experimental = true;
           ReconnectAttempts = "0";
         };
       };
@@ -242,23 +243,16 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     wireplumber.enable = true;
+    extraConfig = {
+      pipewire."92-force-48k" = {
+        "context.properties" = {
+          "default.clock.rate" = 48000;
+          "default.clock.allowed-rates" = [48000];
+        };
+      };
+    };
   };
 
-  # Enable Bluetooth codecs in PipeWire
-  services.pipewire.extraConfig.pipewire = {
-    "context.modules" = [
-      {
-        name = "libpipewire-module-bluez5";
-        args = {
-          "bluez5.codecs" = [
-            "sbc"
-            "aac"
-            "ldac"
-          ];
-        };
-      }
-    ];
-  };
   # services.udev.packages = [pkgs.mixxx];
   musnix.enable = false;
 

@@ -1,9 +1,9 @@
 {
   config,
   pkgs,
+  ports,
   ...
 }: let
-  seahubPort = 8008;
   domain = "seafile.marcel.cool";
 in {
   sops = {
@@ -98,7 +98,7 @@ in {
         SEAFILE_SERVER_HOSTNAME = "${domain}";
         SEAFILE_SERVER_PROTOCOL = "https";
       };
-      ports = ["127.0.0.1:${toString seahubPort}:80"];
+      ports = ["127.0.0.1:${toString ports.seahub}:80"];
       extraOptions = ["--network=seafile-net"];
       dependsOn = ["seafile-db" "seafile-memcached"];
     };
