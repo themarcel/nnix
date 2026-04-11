@@ -41,7 +41,7 @@
             sabnzbd:
               - name: "SABnzbd"
                 enable: true
-                host: "127.0.0.1"
+                hostname: 127.0.0.1
                 port: 8080
                 api_key: "${config.sops.placeholder.sabnzbd_api}"
                 category: "tv"
@@ -66,7 +66,7 @@
               SABnzbd:
                 type: "sabnzbd"
                 enable: true
-                host: "127.0.0.1"
+                hostname: 127.0.0.1
                 port: 8080
                 api_key: "${config.sops.placeholder.sabnzbd_api}"
                 category: "movies"

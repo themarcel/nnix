@@ -22,6 +22,7 @@
     sabnzbd = 8080;
     seahub = 8008;
     seerr = 5055;
+    shoko = 8111;
     slskd = 5030;
     sonarr = 8989;
     soulbeet = 9765;
@@ -45,6 +46,7 @@
     "sabnzbd.marcel.cool" = ports.sabnzbd;
     "seafile.marcel.cool" = ports.seahub;
     "seerr.marcel.cool" = ports.seerr;
+    "shoko.marcel.cool" = ports.shoko;
     "slskd.marcel.cool" = ports.slskd;
     "sonarr.marcel.cool" = ports.sonarr;
     "soulbeet.marcel.cool" = ports.soulbeet;
@@ -88,6 +90,7 @@ in {
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
     ./seafile.nix
+    ./shoko.nix
     ./arr
   ];
 
@@ -296,11 +299,9 @@ in {
 
     # SABnzbd
     "d /var/lib/sabnzbd 0775 sabnzbd media -"
-    "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
 
     # qbit
     "d /var/lib/qbittorrent 0775 qbittorrent media -"
-    "d /var/lib/qbittorrent/.config 0750 qbittorrent qbittorrent -"
     "d /var/lib/qbittorrent/.config/qBittorrent 0750 qbittorrent qbittorrent -"
   ];
 
@@ -416,6 +417,9 @@ in {
 
   virtualisation.oci-containers.containers.soulbeet = {
     image = "docker.io/docccccc/soulbeet:latest";
+    environment = {
+      BEETSDIR = "/config";
+    };
     volumes = [
       "/var/lib/soulbeet:/data"
       "/var/lib/slskd/music/downloads:/var/lib/slskd/music/downloads"
@@ -447,10 +451,10 @@ in {
     image = "robertlordhood/chaptarr:latest";
     volumes = [
       "/var/lib/chaptarr:/config"
-      "/var/lib/media/books:/books"
-      "/var/lib/media/audiobooks:/audiobooks"
-      "/var/lib/media/downloads:/downloads"
-      "/var/lib/media/books/import:/import"
+      "/var/lib/media/books:/var/lib/media/books"
+      "/var/lib/media/audiobooks:/var/lib/media/audiobooks"
+      "/var/lib/media/downloads:/var/lib/media/downloads"
+      "/var/lib/media/books/import:/var/lib/media/books/import"
     ];
     environment = {
       TZ = config.time.timeZone;
@@ -577,12 +581,12 @@ in {
       allowedTCPPorts =
         [
           80 # nginx catch-all
-          29888 # Qbitorrent
+          23951 # Qbitorrent
           50300 # Soulseek
           9117 # Jackett
         ]
         ++ (builtins.attrValues ports);
-      allowedUDPPorts = [29888];
+      allowedUDPPorts = [23951];
       allowedUDPPortRanges = [
         {
           from = 60000;
@@ -655,6 +659,7 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
+    erdtree
     git
     vim
     lsof
@@ -684,7 +689,7 @@ in {
         sudo podman exec -it soulbeet beet import /var/lib/slskd/music/downloads
       else
         echo "Importing: $1"
-        sudo podman exec -it soulbeet beet import "/var/lib/slskd/music/downloads/$1"
+        sudo podman exec -i soulbeet beet import -q -s -A "/var/lib/slskd/music/downloads/$1"
       fi
     '')
   ];
@@ -853,6 +858,12 @@ in {
       inherit inputs;
       inherit (inputs) nvim;
       inherit pkgs;
+    };
+    users.root = {
+      home = {
+        stateVersion = "26.05";
+        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+      };
     };
     users.dev = {lib, ...}: {
       home = {
