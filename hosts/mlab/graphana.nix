@@ -1,13 +1,10 @@
 {
   config,
   pkgs,
+  services,
   ...
-}: let
-  ports = {
-    grafana = 3005;
-    prometheus = 9090;
-  };
-in {
+}:
+{
   services.grafana = {
     enable = true;
     settings = {
@@ -16,7 +13,7 @@ in {
       };
       server = {
         http_addr = "127.0.0.1";
-        http_port = ports.grafana;
+        http_port = services.grafana.port;
         domain = "grafana.marcel.cool";
         root_url = "https://grafana.marcel.cool";
       };
@@ -27,14 +24,14 @@ in {
         {
           name = "Prometheus";
           type = "prometheus";
-          url = "http://127.0.0.1:${toString ports.prometheus}";
+          url = "http://127.0.0.1:${toString services.prometheus.port}";
           isDefault = true;
         }
       ];
       dashboards.settings.providers = [
         {
           name = "Local Dashboards";
-          options.path = pkgs.runCommand "grafana-dashboards" {} ''
+          options.path = pkgs.runCommand "grafana-dashboards" { } ''
             mkdir -p $out
             cp ${
               pkgs.fetchurl {
@@ -49,13 +46,13 @@ in {
   };
   services.prometheus = {
     enable = true;
-    port = ports.prometheus;
+    port = services.prometheus.port;
     listenAddress = "127.0.0.1";
 
     exporters = {
       node = {
         enable = true;
-        enabledCollectors = ["systemd"];
+        enabledCollectors = [ "systemd" ];
         port = 9100;
       };
     };
@@ -65,7 +62,7 @@ in {
         job_name = "mlab_system";
         static_configs = [
           {
-            targets = ["127.0.0.1:${toString config.services.prometheus.exporters.node.port}"];
+            targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ];
           }
         ];
       }

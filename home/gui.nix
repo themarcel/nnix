@@ -30,7 +30,6 @@ in {
     fira-sans
     font-awesome
     foot
-    mullvad-vpn
     jitsi
     gimp3
     grimblast

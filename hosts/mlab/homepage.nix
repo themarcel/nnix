@@ -1,8 +1,9 @@
 {
   config,
-  ports,
+  services,
   ...
-}: {
+}:
+{
   sops.templates."homepage.env" = {
     content = ''
       HOMEPAGE_ALLOWED_HOSTS="home.marcel.cool,127.0.0.1,localhost"
@@ -23,8 +24,8 @@
   };
   services.homepage-dashboard = {
     enable = true;
-    listenPort = ports.home;
-    environmentFiles = [config.sops.templates."homepage.env".path];
+    listenPort = services.home.port;
+    environmentFiles = [ config.sops.templates."homepage.env".path ];
 
     settings = {
       title = "Mlab Dashboard";
@@ -67,11 +68,11 @@
           {
             Jellyfin = {
               icon = "jellyfin";
-              href = "https://jellyfin.marcel.cool";
+              href = services.jellyfin.href;
               description = "Movies & TV";
               widget = {
                 type = "jellyfin";
-                url = "http://127.0.0.1:${toString ports.jellyfin}";
+                url = "http://127.0.0.1:${toString services.jellyfin.port}";
                 key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
               };
             };
@@ -79,11 +80,11 @@
           {
             Navidrome = {
               icon = "navidrome";
-              href = "https://music.marcel.cool";
+              href = services.navidrome.href;
               description = "Music Streamer";
               widget = {
                 type = "navidrome";
-                url = "http://127.0.0.1:${toString ports.navidrome}";
+                url = "http://127.0.0.1:${toString services.navidrome.port}";
                 user = "{{HOMEPAGE_VAR_WEB_USER}}";
                 salt = "{{HOMEPAGE_VAR_NAVIDROME_SALT}}";
                 token = "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}";
@@ -93,11 +94,11 @@
           {
             Immich = {
               icon = "immich";
-              href = "https://img.marcel.cool";
+              href = services.immich.href;
               description = "Photos";
               widget = {
                 type = "immich";
-                url = "http://127.0.0.1:${toString ports.immich}";
+                url = "http://127.0.0.1:${toString services.immich.port}";
                 key = "{{HOMEPAGE_VAR_IMMICH_API}}";
                 version = 2;
               };
@@ -106,14 +107,14 @@
           {
             Audiobookshelf = {
               icon = "audiobookshelf";
-              href = "https://audiobooks.marcel.cool";
+              href = services.audiobooks.href;
               description = "Audiobooks";
             };
           }
           {
             Calibre = {
               icon = "book";
-              href = "https://calibre.marcel.cool";
+              href = services.calibre.href;
               description = "E-Book Library";
             };
           }
@@ -124,11 +125,11 @@
           {
             Seerr = {
               icon = "seerr";
-              href = "https://seerr.marcel.cool";
+              href = services.seerr.href;
               description = "Requests";
               widget = {
                 type = "seerr";
-                url = "http://127.0.0.1:${toString ports.seerr}";
+                url = "http://127.0.0.1:${toString services.seerr.port}";
                 key = "{{HOMEPAGE_VAR_SEERR_API}}";
               };
             };
@@ -136,10 +137,10 @@
           {
             Sonarr = {
               icon = "sonarr";
-              href = "https://sonarr.marcel.cool";
+              href = services.sonarr.href;
               widget = {
                 type = "sonarr";
-                url = "http://127.0.0.1:${toString ports.sonarr}";
+                url = "http://127.0.0.1:${toString services.sonarr.port}";
                 key = "{{HOMEPAGE_VAR_SONARR_API}}";
               };
             };
@@ -147,10 +148,10 @@
           {
             Radarr = {
               icon = "radarr";
-              href = "https://radarr.marcel.cool";
+              href = services.radarr.href;
               widget = {
                 type = "radarr";
-                url = "http://127.0.0.1:${toString ports.radarr}";
+                url = "http://127.0.0.1:${toString services.radarr.port}";
                 key = "{{HOMEPAGE_VAR_RADARR_API}}";
               };
             };
@@ -158,10 +159,10 @@
           {
             Lidarr = {
               icon = "lidarr";
-              href = "https://lidarr.marcel.cool";
+              href = services.lidarr.href;
               widget = {
                 type = "lidarr";
-                url = "http://127.0.0.1:${toString ports.lidarr}";
+                url = "http://127.0.0.1:${toString services.lidarr.port}";
                 key = "{{HOMEPAGE_VAR_LIDARR_API}}";
               };
             };
@@ -169,10 +170,10 @@
           {
             Bazarr = {
               icon = "bazarr";
-              href = "https://bazarr.marcel.cool";
+              href = services.bazarr.href;
               widget = {
                 type = "bazarr";
-                url = "http://127.0.0.1:${toString ports.bazarr}";
+                url = "http://127.0.0.1:${toString services.bazarr.port}";
                 key = "{{HOMEPAGE_VAR_BAZARR_API}}";
               };
             };
@@ -180,10 +181,10 @@
           {
             Prowlarr = {
               icon = "prowlarr";
-              href = "https://prowlarr.marcel.cool";
+              href = services.prowlarr.href;
               widget = {
                 type = "prowlarr";
-                url = "http://127.0.0.1:${toString ports.prowlarr}";
+                url = "http://127.0.0.1:${toString services.prowlarr.port}";
                 key = "{{HOMEPAGE_VAR_PROWLARR_API}}";
               };
             };
@@ -191,14 +192,14 @@
           {
             Chaptarr = {
               icon = "readarr";
-              href = "https://chaptarr.marcel.cool";
+              href = services.chaptarr.href;
               description = "Audiobook Automation";
             };
           }
           {
             Soulbeet = {
               icon = "music";
-              href = "https://soulbeet.marcel.cool";
+              href = services.soulbeet.href;
               description = "Music Tagging";
             };
           }
@@ -209,10 +210,10 @@
           {
             qBittorrent = {
               icon = "qbittorrent";
-              href = "https://qbit.marcel.cool";
+              href = services.qbit.href;
               widget = {
                 type = "qbittorrent";
-                url = "http://127.0.0.1:${toString ports.qbit}";
+                url = "http://127.0.0.1:${toString services.qbit.port}";
                 username = "{{HOMEPAGE_VAR_WEB_USER}}";
                 password = "{{HOMEPAGE_VAR_WEB_PASS}}";
               };
@@ -221,10 +222,10 @@
           {
             SABnzbd = {
               icon = "sabnzbd";
-              href = "https://sabnzbd.marcel.cool";
+              href = services.sabnzbd.href;
               widget = {
                 type = "sabnzbd";
-                url = "http://127.0.0.1:${toString ports.sabnzbd}";
+                url = "http://127.0.0.1:${toString services.sabnzbd.port}";
                 key = "{{HOMEPAGE_VAR_SABNZBD_API}}";
               };
             };
@@ -232,7 +233,7 @@
           {
             Slskd = {
               icon = "soulseek";
-              href = "https://slskd.marcel.cool";
+              href = services.slskd.href;
               description = "P2P Music";
             };
           }
@@ -243,28 +244,28 @@
           {
             "Open WebUI" = {
               icon = "ollama";
-              href = "https://ai.marcel.cool";
+              href = services.openwebui.href;
               description = "Local AI";
             };
           }
           {
             Seafile = {
               icon = "seafile";
-              href = "https://seafile.marcel.cool";
+              href = services.seafile.href;
               description = "File Sync";
             };
           }
           {
             Status = {
               icon = "uptime-kuma";
-              href = "https://status.marcel.cool";
+              href = services.status.href;
               description = "Uptime Kuma";
             };
           }
           {
             Grafana = {
               icon = "grafana";
-              href = "https://grafana.marcel.cool";
+              href = services.grafana.href;
               description = "Server Metrics";
             };
           }
