@@ -411,8 +411,13 @@ in {
   environment.etc."soulbeet/beets_config.yaml".text = ''
     directory: /music
     library: /data/soulbeet.db
+
+    plugins: fromfilename
+
     import:
       move: yes
+      write: yes
+      quiet_fallback: asis
   '';
 
   virtualisation.oci-containers.containers.soulbeet = {
@@ -863,6 +868,7 @@ in {
       home = {
         stateVersion = "26.05";
         file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
       };
     };
     users.dev = {lib, ...}: {

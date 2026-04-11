@@ -164,11 +164,11 @@
     "dots": {
       "flake": false,
       "locked": {
-        "lastModified": 1775664876,
-        "narHash": "sha256-KbhzWlaO/CXwiDdgETEtWCnhZV+EMrDycoIhkv/zUAc=",
+        "lastModified": 1775911189,
+        "narHash": "sha256-vg/6I9Yztfqb5kXMpki+Ic1o/q3gCWfFPW/T+jgNmvI=",
         "owner": "marcelarie",
         "repo": "dots",
-        "rev": "eba546541863973f2320e6647402752dd469cc47",
+        "rev": "e7ca4b825a4ffa04f6128036809cb3a5f66ed3a1",
         "type": "github"
       },
       "original": {
