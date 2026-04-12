@@ -7,10 +7,12 @@
 }: {
   imports = [
     ./hardware-configuration.nix
+    # ./nixbuild-enabler.nix # enable this for external building with nixbuild.net
   ];
 
   boot = {
     kernelPackages = pkgs.linuxPackages;
+    binfmt.emulatedSystems = ["aarch64-linux"];
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;

@@ -2,65 +2,62 @@
   pkgs,
   nix-on-droid,
   system,
+  targetSystem,
   sshKeyPath,
-}:
-pkgs.stdenv.mkDerivation {
-  name = "bootstrap-aarch64.zip";
-  src = nix-on-droid.packages.${system}.bootstrapZip-aarch64;
-  nativeBuildInputs = [pkgs.zip];
-  unpackPhase = "true";
+  ...
+}: let
+  targetArch = pkgs.lib.removeSuffix "-linux" targetSystem;
+in
+  pkgs.stdenv.mkDerivation {
+    name = "bootstrap-${targetArch}.zip";
+    src = nix-on-droid.packages.${system}."bootstrapZip-${targetArch}";
 
-  installPhase = ''
-    # Copy the official zipball to our output and make it writable
-    cp $src $out
-    chmod +w $out
+    nativeBuildInputs = [pkgs.zip];
+    unpackPhase = "true";
 
-    # Create the structure we want to inject
-    mkdir -p home/.ssh
-    mkdir -p home/.config/nixpkgs
+    installPhase = ''
+      cp $src/*.zip $out
+      chmod +w $out
 
-    # 1. Inject your mlab SSH key
-    cp ${sshKeyPath} home/.ssh/authorized_keys
-    chmod 700 home/.ssh
-    chmod 600 home/.ssh/authorized_keys
+      mkdir -p home/.ssh
+      mkdir -p home/.config/nixpkgs
 
-    # 2. Setup initial config matching your stateVersion
-    cat > home/.config/nixpkgs/nix-on-droid.nix << 'EOF'
-    { pkgs, ... }: {
-      environment.packages = with pkgs; [ openssh git vim fish ];
-      android-integration.termux-wake-lock.enable = true;
-      user.shell = "${pkgs.fish}/bin/fish";
-      system.stateVersion = "26.05";
-    }
-    EOF
+      cp ${sshKeyPath} home/.ssh/authorized_keys
+      chmod 700 home/.ssh
+      chmod 600 home/.ssh/authorized_keys
 
-    # 3. Bootstrapper profile
-    cat > home/.bash_profile << 'EOF'
-    [ -f ~/.bashrc ] && source ~/.bashrc
+      cat > home/.config/nixpkgs/nix-on-droid.nix << 'EOF'
+      { pkgs, ... }: {
+        environment.packages = with pkgs; [ openssh git vim fish ];
+        android-integration.termux-wake-lock.enable = true;
+        user.shell = "${pkgs.fish}/bin/fish";
+        system.stateVersion = "26.05";
+      }
+      EOF
 
-    if ! command -v sshd >/dev/null 2>&1; then
-        echo "========================================="
-        echo "=> Initializing Nix-on-Droid..."
-        echo "=> Installing OpenSSH and Fish..."
-        echo "========================================="
+      cat > home/.bash_profile << 'EOF'
+      [ -f ~/.bashrc ] && source ~/.bashrc
 
-        nix-on-droid switch
+      if ! command -v sshd >/dev/null 2>&1; then
+          echo "========================================="
+          echo "=> Initializing Nix-on-Droid..."
+          echo "=> Installing OpenSSH and Fish..."
+          echo "========================================="
 
-        echo "=> Generating SSH host keys..."
-        ssh-keygen -A
+          nix-on-droid switch
 
-        echo "=> Starting SSH daemon on port 8022..."
-        sshd -p 8022
-    else
-        # Ensure daemon is running on subsequent app launches
-        pgrep sshd >/dev/null || sshd -p 8022
-    fi
+          echo "=> Generating SSH host keys..."
+          ssh-keygen -A
 
-    # Drop into fish if it was successfully installed
-    [ -x ~/.nix-profile/bin/fish ] && exec ~/.nix-profile/bin/fish
-    EOF
+          echo "=> Starting SSH daemon on port 8022..."
+          sshd -p 8022
+      else
+          pgrep sshd >/dev/null || sshd -p 8022
+      fi
 
-    # Append the new home/ directory into the zip archive securely
-    zip -r $out home/
-  '';
-}
+      [ -x ~/.nix-profile/bin/fish ] && exec ~/.nix-profile/bin/fish
+      EOF
+
+      zip -r $out home/
+    '';
+  }

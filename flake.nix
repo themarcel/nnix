@@ -49,7 +49,7 @@
     };
     zuban.url = "github:marcelarie/zuban";
     nix-on-droid = {
-      url = "github:nix-community/nix-on-droid/release-23.11";
+      url = "github:nix-community/nix-on-droid/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixGL = {
@@ -154,6 +154,7 @@
     # custom android bootstrap zipball generator
     packages.${system}.android-bootstrap = import ./hosts/android/bootstrap.nix {
       inherit pkgs nix-on-droid system;
+      targetSystem = "aarch64-linux";
       sshKeyPath = ./hosts/android/ssh.pub;
     };
     devShells.${system}.default = pkgs.mkShell {

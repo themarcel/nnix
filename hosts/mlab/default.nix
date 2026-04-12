@@ -4,8 +4,7 @@
   lib,
   inputs,
   ...
-}:
-let
+}: let
   services = {
     audiobooks = {
       port = 8000;
@@ -95,6 +94,10 @@ let
       port = 3001;
       href = "https://status.marcel.cool";
     };
+    prometheus = {
+      port = 9090;
+      href = "http://127.0.0.1:9090";
+    };
   };
 
   mkProxyHost = name: service: {
@@ -129,8 +132,7 @@ let
   };
 
   serviceVirtualHosts = lib.mapAttrs mkProxyHost services;
-in
-{
+in {
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
@@ -148,12 +150,12 @@ in
 
   sops = {
     defaultSopsFile = ../../secrets/mlab.yaml;
-    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "app_pass" = { };
-      "app_user" = { };
-      "bazarr_api" = { };
+      "app_pass" = {};
+      "app_user" = {};
+      "bazarr_api" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
@@ -162,27 +164,27 @@ in
         owner = "cloudflared";
         group = "cloudflared";
       };
-      "immich_api" = { };
-      "jellyfin_api" = { };
+      "immich_api" = {};
+      "jellyfin_api" = {};
       "josep_password" = {
         neededForUsers = true;
       };
-      "lidarr_api" = { };
-      "navidrome_salt" = { };
-      "navidrome_token" = { };
-      "prowlarr_api" = { };
-      "qbit_password_hash" = { };
-      "qbit_password_salt" = { };
-      "radarr_api" = { };
-      "sabnzbd_api" = { };
-      "seerr_api" = { };
-      "slsk_pass" = { };
-      "slsk_user" = { };
-      "slskd_api_key" = { };
-      "sonarr_api" = { };
-      "soulbeet_secret_key" = { };
-      "web_pass" = { };
-      "web_user" = { };
+      "lidarr_api" = {};
+      "navidrome_salt" = {};
+      "navidrome_token" = {};
+      "prowlarr_api" = {};
+      "qbit_password_hash" = {};
+      "qbit_password_salt" = {};
+      "radarr_api" = {};
+      "sabnzbd_api" = {};
+      "seerr_api" = {};
+      "slsk_pass" = {};
+      "slsk_user" = {};
+      "slskd_api_key" = {};
+      "sonarr_api" = {};
+      "soulbeet_secret_key" = {};
+      "web_pass" = {};
+      "web_user" = {};
       "grafana_secret_key" = {
         owner = "grafana";
       };
@@ -234,20 +236,31 @@ in
     enable = true;
     clientMaxBodySize = "0";
 
-    virtualHosts = serviceVirtualHosts // {
-      "_" = {
-        default = true;
-        listen = [
-          {
-            addr = "0.0.0.0";
-            port = 80;
-          }
-        ];
-        locations."/" = {
-          return = "307 https://maintenance.marcel.cool";
+    virtualHosts =
+      serviceVirtualHosts
+      // {
+        "bootstrap-server" = {
+          listen = [
+            {
+              addr = "0.0.0.0";
+              port = 8888;
+            }
+          ];
+          locations."/".root = "/var/lib/bootstrap-host";
+        };
+        "_" = {
+          default = true;
+          listen = [
+            {
+              addr = "0.0.0.0";
+              port = 80;
+            }
+          ];
+          locations."/" = {
+            return = "307 https://maintenance.marcel.cool";
+          };
         };
       };
-    };
   };
 
   services.audiobookshelf = {
@@ -256,7 +269,7 @@ in
     openFirewall = true;
   };
   users.users.audiobookshelf = {
-    extraGroups = [ "media" ];
+    extraGroups = ["media"];
   };
 
   virtualisation.oci-containers.containers.calibre-web-automated = {
@@ -280,7 +293,7 @@ in
   users.users.calibre = {
     isSystemUser = true;
     group = "calibre";
-    extraGroups = [ "media" ];
+    extraGroups = ["media"];
     uid = 951;
   };
   users.groups.calibre = {
@@ -294,6 +307,9 @@ in
   };
 
   systemd.tmpfiles.rules = [
+    # Bootstrap
+    "d /var/lib/bootstrap-host 0755 root root -"
+
     # Soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
@@ -360,7 +376,7 @@ in
     chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
   '';
 
-  systemd.services.ddclient.after = [ "nss-user-lookup.target" ];
+  systemd.services.ddclient.after = ["nss-user-lookup.target"];
   systemd.services.slskd.serviceConfig = {
     Restart = lib.mkForce "always";
     RestartSec = "5s";
@@ -377,7 +393,7 @@ in
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = [ "navidrome" ];
+    ensureDatabases = ["navidrome"];
     ensureUsers = [
       {
         name = "navidrome";
@@ -418,7 +434,7 @@ in
     zone = "marcel.cool";
     username = "token";
     passwordFile = config.sops.secrets.cloudflare_ddclient_token.path;
-    domains = [ "ssh.marcel.cool" ];
+    domains = ["ssh.marcel.cool"];
     usev4 = "webv4, webv4=ifconfig.me";
     usev6 = "webv6, webv6=api6.ipify.org";
     ssl = true;
@@ -466,7 +482,7 @@ in
     environmentFiles = [
       config.sops.templates."soulbeet.env".path
     ];
-    extraOptions = [ "--network=host" ]; # allows easy access to local slskd/navidrome
+    extraOptions = ["--network=host"]; # allows easy access to local slskd/navidrome
   };
 
   virtualisation.oci-containers.containers.seerr = {
@@ -510,8 +526,13 @@ in
     tunnels = {
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = config.sops.templates."tunnel.json".path;
-        default = "http://127.0.0.1:80";
-        ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
+        # default = "http://127.0.0.1:80";
+        default = "http_status:404";
+        ingress =
+          {
+            "nix.marcel.cool" = "http://127.0.0.1:8888"; # Map domain to local bootstrap port
+          }
+          // lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
       };
     };
   };
@@ -534,7 +555,7 @@ in
         incomplete = "/var/lib/slskd/music/incompleted";
       };
       shares = {
-        directories = [ "/var/lib/slskd/music/share" ];
+        directories = ["/var/lib/slskd/music/share"];
       };
       soulseek = {
         listen_port = 50300;
@@ -615,14 +636,16 @@ in
     tempAddresses = "enabled";
     firewall = {
       enable = true;
-      allowedTCPPorts = [
-        80 # nginx catch-all
-        23951 # Qbitorrent
-        50300 # Soulseek
-        9117 # Jackett
-      ]
-      ++ builtins.map (v: v.port) (builtins.attrValues services);
-      allowedUDPPorts = [ 23951 ];
+      allowedTCPPorts =
+        [
+          80 # nginx catch-all
+          23951 # Qbitorrent
+          50300 # Soulseek
+          9117 # Jackett
+          8888 # For nix boot images publish
+        ]
+        ++ builtins.map (v: v.port) (builtins.attrValues services);
+      allowedUDPPorts = [23951];
       allowedUDPPortRanges = [
         {
           from = 60000;
@@ -634,7 +657,7 @@ in
         iptables -A INPUT -i podman+ -p tcp --dport ${toString services.slskd.port} -j ACCEPT
         iptables -A INPUT -i podman+ -p tcp --dport ${toString services.navidrome.port} -j ACCEPT
       '';
-      trustedInterfaces = [ "podman0" ];
+      trustedInterfaces = ["podman0"];
     };
   };
 
@@ -737,8 +760,8 @@ in
       "network-pre.target"
       "sys-subsystem-net-devices-enp2s0f0np0.device"
     ];
-    wants = [ "sys-subsystem-net-devices-enp2s0f0np0.device" ];
-    wantedBy = [ "multi-user.target" ];
+    wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
+    wantedBy = ["multi-user.target"];
     serviceConfig = {
       Type = "oneshot";
       User = "root";
@@ -764,7 +787,7 @@ in
   users = {
     users.dev = {
       isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      extraGroups = ["wheel"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
       ];
@@ -785,28 +808,28 @@ in
       home = "/var/lib/slskd";
       createHome = true;
     };
-    groups.slskd = { };
+    groups.slskd = {};
 
     users.cloudflared = {
       isSystemUser = true;
       group = "cloudflared";
     };
-    groups.cloudflared = { };
+    groups.cloudflared = {};
 
     users.navidrome = {
       isSystemUser = true;
       group = "navidrome";
-      extraGroups = [ "slskd" ];
+      extraGroups = ["slskd"];
       home = "/var/lib/navidrome";
       createHome = true;
     };
-    groups.navidrome = { };
+    groups.navidrome = {};
 
     users.ddclient = {
       isSystemUser = true;
       group = "ddclient";
     };
-    groups.ddclient = { };
+    groups.ddclient = {};
 
     users.jellyfin.extraGroups = [
       "render"
@@ -814,29 +837,29 @@ in
       "media"
       "slskd"
     ];
-    users.qbittorrent.extraGroups = [ "media" ];
-    groups.media = { };
+    users.qbittorrent.extraGroups = ["media"];
+    groups.media = {};
 
     users.sonarr = {
       isSystemUser = true;
       group = "sonarr";
-      extraGroups = [ "media" ];
+      extraGroups = ["media"];
     };
-    groups.sonarr = { };
+    groups.sonarr = {};
 
     users.sabnzbd = {
-      extraGroups = [ "media" ];
+      extraGroups = ["media"];
     };
     users.radarr = {
-      extraGroups = [ "media" ];
+      extraGroups = ["media"];
     };
     users.lidarr = {
-      extraGroups = [ "media" ];
+      extraGroups = ["media"];
     };
     users.chaptarr = {
       isSystemUser = true;
       group = "chaptarr";
-      extraGroups = [ "media" ];
+      extraGroups = ["media"];
       uid = 950;
     };
     groups.chaptarr = {
@@ -860,29 +883,29 @@ in
     openFirewall = true;
   };
   systemd.services.bazarr.serviceConfig = {
-    ReadWritePaths = [ "/var/lib/media" ];
+    ReadWritePaths = ["/var/lib/media"];
     UMask = lib.mkForce "0002";
   };
 
   systemd.services = {
     sonarr.serviceConfig = {
-      ReadWritePaths = [ "/var/lib/media" ];
+      ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
     radarr.serviceConfig = {
-      ReadWritePaths = [ "/var/lib/media" ];
+      ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
     lidarr.serviceConfig = {
-      ReadWritePaths = [ "/var/lib/media" ];
+      ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
     qbittorrent.serviceConfig = {
-      ReadWritePaths = [ "/var/lib/media" ];
+      ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
     sabnzbd.serviceConfig = {
-      ReadWritePaths = [ "/var/lib/media" ];
+      ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
   };
@@ -904,36 +927,34 @@ in
         file.".config/btop".source = "${inputs.dots}/.config/btop";
       };
     };
-    users.dev =
-      { lib, ... }:
-      {
-        home = {
-          stateVersion = "26.05";
-          sessionVariables.NVIM_PROFILE = "minimal";
-          packages = with pkgs; [
-            atuin
-            gnupg
-            pass
-            carapace
-          ];
-          file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
-          file."clones/forks/xelabash".source = inputs.xelabash;
-          file."scripts".source = "${inputs.dots}/scripts";
-          file.".config/tmux".source = "${inputs.dots}/.config/tmux";
-          file.".config/atuin".source = "${inputs.dots}/.config/atuin";
-          file.".config/carapace".source = "${inputs.dots}/.config/carapace";
-          file.".config/git".source = "${inputs.dots}/.config/git";
-          file.".config/zoxide".source = "${inputs.dots}/.config/zoxide";
-          file.".config/btop".source = "${inputs.dots}/.config/btop";
-        };
-        programs.bash = {
-          enable = true;
-          initExtra = ''
-            source ${inputs.dots}/.bashrc
-          '';
-        };
-        imports = [ inputs.nvim.homeManagerModules.default ];
+    users.dev = {lib, ...}: {
+      home = {
+        stateVersion = "26.05";
+        sessionVariables.NVIM_PROFILE = "minimal";
+        packages = with pkgs; [
+          atuin
+          gnupg
+          pass
+          carapace
+        ];
+        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
+        file."clones/forks/xelabash".source = inputs.xelabash;
+        file."scripts".source = "${inputs.dots}/scripts";
+        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+        file.".config/atuin".source = "${inputs.dots}/.config/atuin";
+        file.".config/carapace".source = "${inputs.dots}/.config/carapace";
+        file.".config/git".source = "${inputs.dots}/.config/git";
+        file.".config/zoxide".source = "${inputs.dots}/.config/zoxide";
+        file.".config/btop".source = "${inputs.dots}/.config/btop";
       };
+      programs.bash = {
+        enable = true;
+        initExtra = ''
+          source ${inputs.dots}/.bashrc
+        '';
+      };
+      imports = [inputs.nvim.homeManagerModules.default];
+    };
   };
 
   system.stateVersion = "26.05";
