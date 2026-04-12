@@ -151,6 +151,11 @@
       config.allowUnfree = true;
     };
   in {
+    # custom android bootstrap zipball generator
+    packages.${system}.android-bootstrap = import ./hosts/android/bootstrap.nix {
+      inherit pkgs nix-on-droid system;
+      sshKeyPath = ./hosts/android/ssh.pub;
+    };
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
         git

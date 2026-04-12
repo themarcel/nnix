@@ -10,7 +10,7 @@
   ];
 
   boot = {
-    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
@@ -228,13 +228,6 @@
     pulse.enable = true;
     wireplumber = {
       enable = true;
-      extraConfig = {
-        "11-bluetooth-ldac" = {
-          "monitor.bluez.properties" = {
-            "bluez5.a2dp.ldac.quality" = "auto";
-          };
-        };
-      };
     };
   };
 
