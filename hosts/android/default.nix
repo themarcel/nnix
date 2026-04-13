@@ -48,19 +48,18 @@ in {
         gnupg
       ];
 
-      home.file.".ssh/sshd_config".text = ''
-        Port 8022
-        HostKey ~/.ssh/ssh_host_ed25519_key
-        AuthorizedKeysFile ~/.ssh/authorized_keys
-        StrictModes no
-      '';
-
       home = {
         file.".config/tmux".source = "${inputs.dots}/.config/tmux";
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
         file."clones/forks/xelabash".source = inputs.xelabash;
         file."scripts".source = "${inputs.dots}/scripts";
         file.".config/git".source = "${inputs.dots}/.config/git";
+        file.".ssh/sshd_config".text = ''
+          Port 8022
+          HostKey ~/.ssh/ssh_host_ed25519_key
+          AuthorizedKeysFile ~/.ssh/authorized_keys
+          StrictModes no
+        '';
       };
       programs.ssh = {
         enable = true;
