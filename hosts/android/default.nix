@@ -1,6 +1,7 @@
 {
-  config,
+  _config,
   pkgs,
+  inputs,
   ...
 }: let
   terminalPackages = import ../../home/terminal-packages.nix {inherit pkgs;};
@@ -8,10 +9,19 @@
 in {
   system.stateVersion = stateVersion;
 
+  # critical: prevents android from killing ssh when the screen is off
+  android-integration.termux-wake-lock.enable = true;
+
   environment.packages =
     terminalPackages
     ++ (with pkgs; [
-      # Add any Android-specific tools here
+      openssh
+      git
+      vim
+      fish
+      inetutils
+      iproute2
+      mosh
     ]);
 
   environment.sessionVariables = {
@@ -34,10 +44,35 @@ in {
       ...
     }: {
       home.stateVersion = stateVersion;
-
       home.packages = with pkgs; [
-        blesh
+        gnupg
       ];
+    };
+
+    home = {
+      file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+      file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
+      file."clones/forks/xelabash".source = inputs.xelabash;
+      file."scripts".source = "${inputs.dots}/scripts";
+      file.".config/git".source = "${inputs.dots}/.config/git";
+    };
+    programs.ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      "mlab" = {
+        hostname = "ssh.marcel.cool";
+        user = "root";
+        identityFile = "~/.ssh/mlab_key";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
+    };
+    programs.bash = {
+      enable = true;
+      initExtra = ''
+        source ${inputs.dots}/.bashrc
+      '';
     };
   };
 

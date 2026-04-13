@@ -156,6 +156,7 @@
       inherit pkgs nix-on-droid system;
       targetSystem = "aarch64-linux";
       sshKeyPath = ./hosts/android/ssh.pub;
+      flakeSource = ./.;
     };
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [

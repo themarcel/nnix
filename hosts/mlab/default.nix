@@ -101,6 +101,7 @@
   };
 
   mkProxyHost = name: service: {
+    serverName = lib.removePrefix "https://" service.href;
     listen = [
       {
         addr = "0.0.0.0";
@@ -239,15 +240,6 @@ in {
     virtualHosts =
       serviceVirtualHosts
       // {
-        "bootstrap-server" = {
-          listen = [
-            {
-              addr = "0.0.0.0";
-              port = 8888;
-            }
-          ];
-          locations."/".root = "/var/lib/bootstrap-host";
-        };
         "_" = {
           default = true;
           listen = [
@@ -307,9 +299,6 @@ in {
   };
 
   systemd.tmpfiles.rules = [
-    # Bootstrap
-    "d /var/lib/bootstrap-host 0755 root root -"
-
     # Soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
@@ -526,13 +515,8 @@ in {
     tunnels = {
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = config.sops.templates."tunnel.json".path;
-        # default = "http://127.0.0.1:80";
-        default = "http_status:404";
-        ingress =
-          {
-            "nix.marcel.cool" = "http://127.0.0.1:8888"; # Map domain to local bootstrap port
-          }
-          // lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
+        default = "http://127.0.0.1:80";
+        ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
       };
     };
   };
@@ -642,7 +626,6 @@ in {
           23951 # Qbitorrent
           50300 # Soulseek
           9117 # Jackett
-          8888 # For nix boot images publish
         ]
         ++ builtins.map (v: v.port) (builtins.attrValues services);
       allowedUDPPorts = [23951];
