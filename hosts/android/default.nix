@@ -4,7 +4,7 @@
   inputs,
   ...
 }: let
-  stateVersion = "24.05";
+  stateVersion = "25.11";
 in {
   system.stateVersion = stateVersion;
 
@@ -54,7 +54,6 @@ in {
       };
       programs.ssh = {
         enable = true;
-        # enableDefaultConfig = false;
         # "mlab" = {
         #   hostname = "ssh.marcel.cool";
         #   user = "root";
@@ -72,6 +71,4 @@ in {
       };
     };
   };
-
-  user.shell = "${pkgs.fish}/bin/fish";
 }
