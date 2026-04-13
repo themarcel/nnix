@@ -57,15 +57,15 @@ in {
       };
       programs.ssh = {
         enable = true;
-        enableDefaultConfig = false;
-        "mlab" = {
-          hostname = "ssh.marcel.cool";
-          user = "root";
-          identityFile = "~/.ssh/mlab_key";
-          extraOptions = {
-            IdentitiesOnly = "yes";
-          };
-        };
+        # enableDefaultConfig = false;
+        # "mlab" = {
+        #   hostname = "ssh.marcel.cool";
+        #   user = "root";
+        #   identityFile = "~/.ssh/mlab_key";
+        #   extraOptions = {
+        #     IdentitiesOnly = "yes";
+        #   };
+        # };
       };
       programs.bash = {
         enable = true;
