@@ -63,6 +63,9 @@ in {
       };
       programs.ssh = {
         enable = true;
+      };
+      programs.bash = {
+        enable = true;
         initExtra = ''
           source ${inputs.dots}/.bashrc
 
@@ -75,18 +78,6 @@ in {
             # Start the daemon
             ~/.nix-profile/bin/sshd -f ~/.ssh/sshd_config
           fi
-        '';
-      };
-      programs.bash = {
-        enable = true;
-        initExtra = ''
-          if not pgrep -x "sshd" >/dev/null
-              if test ! -f ~/.ssh/ssh_host_ed25519_key
-                ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f ~/.ssh/ssh_host_ed25519_key -N "" -q
-              end
-              ~/.nix-profile/bin/sshd -f ~/.ssh/sshd_config
-            end
-            source ${inputs.dots}/.bashrc
         '';
       };
     };
