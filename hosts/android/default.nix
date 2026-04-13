@@ -4,7 +4,7 @@
   inputs,
   ...
 }: let
-  stateVersion = "25.11";
+  stateVersion = "24.05";
 in {
   system.stateVersion = stateVersion;
 

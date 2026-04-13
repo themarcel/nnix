@@ -8,6 +8,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     my-nixpkgs.url = "github:marcelarie/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs2405.url = "github:NixOS/nixpkgs/nixos-24.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
     nvim.url = "github:marcelarie/nvim-lua";
@@ -102,6 +103,7 @@
     nur,
     my-nixpkgs,
     disko,
+    nixpkgs2405,
     ...
   } @ inputs: let
     hyprlandInputs = inputs.hyprland;
@@ -142,7 +144,7 @@
         })
       ];
     };
-    pkgsAndroid = import nixpkgsStable {
+    pkgsAndroid = import nixpkgs2405 {
       system = androidSystem;
       config.allowUnfree = true;
     };
