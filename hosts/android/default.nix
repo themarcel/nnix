@@ -5,7 +5,7 @@
   ...
 }: let
   terminalPackages = import ../../home/terminal-packages.nix {inherit pkgs;};
-  stateVersion = "26.05";
+  stateVersion = "24.05";
 in {
   system.stateVersion = stateVersion;
 
