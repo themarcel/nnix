@@ -240,6 +240,7 @@
 
     nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
       pkgs = pkgsAndroid;
+      extraSpecialArgs = {inherit inputs;};
       modules = [
         ./hosts/android/default.nix
       ];
