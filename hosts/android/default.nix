@@ -11,7 +11,7 @@ in {
   # critical: prevents android from killing ssh when the screen is off
   android-integration.termux-wake-lock.enable = true;
 
-  environment.systemPackages = with pkgs; [
+  environment.packages = with pkgs; [
     openssh
     git
     vim
