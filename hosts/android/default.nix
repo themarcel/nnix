@@ -71,7 +71,7 @@ in {
       };
       programs.bash = {
         enable = true;
-        programs.bash.initExtra = ''
+        initExtra = ''
           source ${inputs.dots}/.bashrc
 
           # Start SSHD with absolute paths to avoid 'Connection reset'
