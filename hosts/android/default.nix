@@ -22,6 +22,7 @@ in {
     atuin
     direnv
     zoxide
+    eza
   ];
 
   environment.sessionVariables = {
