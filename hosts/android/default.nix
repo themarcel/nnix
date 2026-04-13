@@ -4,7 +4,6 @@
   inputs,
   ...
 }: let
-  terminalPackages = import ../../home/terminal-packages.nix {inherit pkgs;};
   stateVersion = "24.05";
 in {
   system.stateVersion = stateVersion;
@@ -12,17 +11,15 @@ in {
   # critical: prevents android from killing ssh when the screen is off
   android-integration.termux-wake-lock.enable = true;
 
-  environment.packages =
-    terminalPackages
-    ++ (with pkgs; [
-      openssh
-      git
-      vim
-      fish
-      inetutils
-      iproute2
-      mosh
-    ]);
+  environment.systemPackages = with pkgs; [
+    openssh
+    git
+    vim
+    fish
+    inetutils
+    iproute2
+    mosh
+  ];
 
   environment.sessionVariables = {
     EDITOR = "nvim";
