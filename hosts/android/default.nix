@@ -68,6 +68,16 @@ in {
       };
       programs.ssh = {
         enable = true;
+        matchBlocks = {
+          "mlab" = {
+            hostname = "ssh.marcel.cool";
+            user = "root";
+            identityFile = "~/.ssh/id_mlab";
+            extraOptions = {
+              IdentitiesOnly = "yes";
+            };
+          };
+        };
       };
       programs.bash = {
         enable = true;
