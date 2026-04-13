@@ -53,7 +53,6 @@ in {
       home = {
         file.".config/tmux".source = "${inputs.dots}/.config/tmux";
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
-        file.".bashrc".source = "${inputs.dots}/.bashrc";
         file."clones/forks/xelabash".source = inputs.xelabash;
         file."scripts".source = "${inputs.dots}/scripts";
         file.".config/git".source = "${inputs.dots}/.config/git";
