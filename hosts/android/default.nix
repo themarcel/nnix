@@ -47,32 +47,32 @@ in {
       home.packages = with pkgs; [
         gnupg
       ];
-    };
 
-    home = {
-      file.".config/tmux".source = "${inputs.dots}/.config/tmux";
-      file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
-      file."clones/forks/xelabash".source = inputs.xelabash;
-      file."scripts".source = "${inputs.dots}/scripts";
-      file.".config/git".source = "${inputs.dots}/.config/git";
-    };
-    programs.ssh = {
-      enable = true;
-      enableDefaultConfig = false;
-      "mlab" = {
-        hostname = "ssh.marcel.cool";
-        user = "root";
-        identityFile = "~/.ssh/mlab_key";
-        extraOptions = {
-          IdentitiesOnly = "yes";
+      home = {
+        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
+        file."clones/forks/xelabash".source = inputs.xelabash;
+        file."scripts".source = "${inputs.dots}/scripts";
+        file.".config/git".source = "${inputs.dots}/.config/git";
+      };
+      programs.ssh = {
+        enable = true;
+        enableDefaultConfig = false;
+        "mlab" = {
+          hostname = "ssh.marcel.cool";
+          user = "root";
+          identityFile = "~/.ssh/mlab_key";
+          extraOptions = {
+            IdentitiesOnly = "yes";
+          };
         };
       };
-    };
-    programs.bash = {
-      enable = true;
-      initExtra = ''
-        source ${inputs.dots}/.bashrc
-      '';
+      programs.bash = {
+        enable = true;
+        initExtra = ''
+          source ${inputs.dots}/.bashrc
+        '';
+      };
     };
   };
 
