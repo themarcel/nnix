@@ -19,6 +19,9 @@ in {
     inetutils
     iproute2
     mosh
+    atuin
+    direnv
+    zoxide
   ];
 
   environment.sessionVariables = {
@@ -45,6 +48,13 @@ in {
         gnupg
       ];
 
+      home.file.".ssh/sshd_config".text = ''
+        Port 8022
+        HostKey ~/.ssh/ssh_host_ed25519_key
+        AuthorizedKeysFile ~/.ssh/authorized_keys
+        StrictModes no
+      '';
+
       home = {
         file.".config/tmux".source = "${inputs.dots}/.config/tmux";
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
@@ -54,19 +64,30 @@ in {
       };
       programs.ssh = {
         enable = true;
-        # "mlab" = {
-        #   hostname = "ssh.marcel.cool";
-        #   user = "root";
-        #   identityFile = "~/.ssh/mlab_key";
-        #   extraOptions = {
-        #     IdentitiesOnly = "yes";
-        #   };
-        # };
+        initExtra = ''
+          source ${inputs.dots}/.bashrc
+
+          # Auto-start SSH daemon safely
+          if ! pgrep -x "sshd" >/dev/null; then
+            # Generate host key if it doesn't exist
+            if [ ! -f ~/.ssh/ssh_host_ed25519_key ]; then
+              ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f ~/.ssh/ssh_host_ed25519_key -N "" -q
+            fi
+            # Start the daemon
+            ~/.nix-profile/bin/sshd -f ~/.ssh/sshd_config
+          fi
+        '';
       };
       programs.bash = {
         enable = true;
         initExtra = ''
-          source ${inputs.dots}/.bashrc
+          if not pgrep -x "sshd" >/dev/null
+              if test ! -f ~/.ssh/ssh_host_ed25519_key
+                ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f ~/.ssh/ssh_host_ed25519_key -N "" -q
+              end
+              ~/.nix-profile/bin/sshd -f ~/.ssh/sshd_config
+            end
+            source ${inputs.dots}/.bashrc
         '';
       };
     };
