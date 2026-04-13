@@ -26,9 +26,9 @@ in
       chmod 600 home/.ssh/authorized_keys
 
       # 1. Copy your entire flake repository to the phone
-      mkdir -p home/dotfiles
-      cp -r ${flakeSource}/* home/dotfiles/
-      chmod -R +w home/dotfiles # Nix store paths are read-only, so we fix permissions
+      mkdir -p home/nix
+      cp -r ${flakeSource}/* home/nix/
+      chmod -R +w home/nix # Nix store paths are read-only, so we fix permissions
 
       # 2. Tell the bootstrap to build from your local flake
       cat > home/.bash_profile << 'EOF'
@@ -38,7 +38,7 @@ in
           echo "=> Installing your full Nix-on-Droid Flake..."
 
           # Change "android" to whatever you named your configuration in flake.nix
-          nix-on-droid switch --flake ~/dotfiles#android
+          nix-on-droid switch --flake ~/nix#android
 
           source /etc/profile
           sshd -p 8022

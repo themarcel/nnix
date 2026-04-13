@@ -60,8 +60,8 @@ in {
         file.".ssh/authorized_keys".text = sshKey;
         file.".ssh/sshd_config".text = ''
           Port 8022
-          HostKey ~/.ssh/ssh_host_ed25519_key
-          AuthorizedKeysFile ~/.ssh/authorized_keys
+          HostKey ${config.home.homeDirectory}/.ssh/ssh_host_ed25519_key
+          AuthorizedKeysFile ${config.home.homeDirectory}/.ssh/authorized_keys
           StrictModes no
         '';
       };
@@ -70,17 +70,18 @@ in {
       };
       programs.bash = {
         enable = true;
-        initExtra = ''
+        programs.bash.initExtra = ''
           source ${inputs.dots}/.bashrc
 
-          # Auto-start SSH daemon safely
+          # Start SSHD with absolute paths to avoid 'Connection reset'
           if ! pgrep -x "sshd" >/dev/null; then
-            # Generate host key if it doesn't exist
-            if [ ! -f ~/.ssh/ssh_host_ed25519_key ]; then
-              ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f ~/.ssh/ssh_host_ed25519_key -N "" -q
+            # Ensure keys exist
+            if [ ! -f /data/data/com.termux.nix/files/home/.ssh/ssh_host_ed25519_key ]; then
+              ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f /data/data/com.termux.nix/files/home/.ssh/ssh_host_ed25519_key -N "" -q
             fi
-            # Start the daemon
-            ~/.nix-profile/bin/sshd -f ~/.ssh/sshd_config
+
+            # Start daemon using the full path to the config
+            /data/data/com.termux.nix/files/home/.nix-profile/bin/sshd -f /data/data/com.termux.nix/files/home/.ssh/sshd_config
           fi
         '';
       };
