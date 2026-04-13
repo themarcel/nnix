@@ -26,6 +26,7 @@ in {
     eza
     carapace
     procps
+    bat
   ];
 
   environment.sessionVariables = {
