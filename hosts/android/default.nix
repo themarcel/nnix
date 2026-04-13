@@ -25,6 +25,7 @@ in {
     zoxide
     eza
     carapace
+    procps
   ];
 
   environment.sessionVariables = {
