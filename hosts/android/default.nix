@@ -23,7 +23,7 @@ in {
     direnv
     zoxide
     eza
-    carapece
+    carapace
   ];
 
   environment.sessionVariables = {
