@@ -10,3 +10,5 @@ mlab:
 	else \
 		nixos-rebuild switch  --flake .#mlab --target-host root@mlab; \
 	fi
+
+

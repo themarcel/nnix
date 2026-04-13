@@ -5,6 +5,7 @@
   ...
 }: let
   stateVersion = "24.05";
+  sshKey = builtins.readFile ../android/ssh.pub;
 in {
   system.stateVersion = stateVersion;
 
@@ -56,6 +57,7 @@ in {
         file."clones/forks/xelabash".source = inputs.xelabash;
         file."scripts".source = "${inputs.dots}/scripts";
         file.".config/git".source = "${inputs.dots}/.config/git";
+        file.".ssh/authorized_keys".text = sshKey;
         file.".ssh/sshd_config".text = ''
           Port 8022
           HostKey ~/.ssh/ssh_host_ed25519_key
