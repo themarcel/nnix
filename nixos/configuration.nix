@@ -37,11 +37,9 @@
     substituters = [
       "https://cache.nixos.org"
       "https://cache.marcel.cool/system"
-      "https://nix-community.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM="
     ];
   };
@@ -383,15 +381,14 @@
     serviceConfig = {
       User = "root";
       EnvironmentFile = config.sops.templates."attic-watch.env".path;
-      # tells attic to push to the 'system' cache on the 'mlab' server profile
+      # Use a dedicated state directory for the attic config
+      StateDirectory = "attic-client";
+      ExecStartPre = pkgs.writeShellScript "attic-login" ''
+        ${pkgs.attic-client}/bin/attic login mlab https://cache.marcel.cool "$ATTIC_TOKEN"
+      '';
       ExecStart = "${pkgs.attic-client}/bin/attic watch-store mlab:system";
       Restart = "always";
-      RestartSec = "10s";
     };
-    preStart = ''
-      mkdir -p /root/.config/attic
-      ${pkgs.attic-client}/bin/attic login mlab https://cache.marcel.cool "$ATTIC_TOKEN"
-    '';
   };
 
   networking.firewall.enable = false;
