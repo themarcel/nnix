@@ -3,30 +3,30 @@
 
   inputs = {
     crane.url = "github:ipetkov/crane";
-    mq.url = "github:marcelarie/mq";
+    mq.url = "github:themarcel/mq";
     musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    my-nixpkgs.url = "github:marcelarie/nixpkgs";
+    my-nixpkgs.url = "github:themarcel/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs2405.url = "github:NixOS/nixpkgs/nixos-24.05";
-    nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    nu-alias-converter.url = "github:themarcel/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    nvim.url = "github:marcelarie/nvim-lua";
+    nvim.url = "github:themarcel/nvim-lua";
     dots = {
-      url = "github:marcelarie/dots";
+      url = "github:themarcel/dots";
       flake = false;
     };
     xelabash = {
-      url = "github:marcelarie/xelabash";
+      url = "github:themarcel/xelabash";
       flake = false;
     };
     foot-fork = {
-      url = "git+https://codeberg.org/marcelarie/foot?ref=regex-scrollback-search";
+      url = "git+https://codeberg.org/themarcel/foot?ref=regex-scrollback-search";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    zuban.url = "github:marcelarie/zuban";
+    zuban.url = "github:themarcel/zuban";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,7 +44,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tmex = {
-      url = "github:marcelarie/tmex";
+      url = "github:themarcel/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
