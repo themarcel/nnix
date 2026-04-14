@@ -205,6 +205,10 @@ in {
       source = link "${dots}/.config/zk";
       recursive = true;
     };
+    ".pi" = {
+      source = link "${dots}/.pi";
+      recursive = true;
+    };
     ".newsboat" = {
       source = link "${dots}/.newsboat";
       recursive = true;

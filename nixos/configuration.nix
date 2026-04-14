@@ -320,6 +320,7 @@
     openvpn
     sbc
     chromium
+    localsend
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]
       background=/etc/sddm/black.png

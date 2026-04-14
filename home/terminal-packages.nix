@@ -29,6 +29,7 @@ with pkgs; [
   cbfmt
   chafa
   charm-freeze
+  claude-code
   clang-tools
   click
   codex
