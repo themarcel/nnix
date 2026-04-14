@@ -785,7 +785,7 @@ in {
         sudo podman exec -it soulbeet beet import /var/lib/slskd/music/downloads
       else
         echo "Importing: $1"
-        sudo podman exec -i soulbeet beet import -q -s -A "/var/lib/slskd/music/downloads/$1"
+        sudo podman exec -i soulbeet beet import "/var/lib/slskd/music/downloads/$1"
       fi
     '')
   ];
