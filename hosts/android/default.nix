@@ -12,6 +12,24 @@ in {
   # critical: prevents android from killing ssh when the screen is off
   android-integration.termux-wake-lock.enable = true;
 
+  nix = {
+    distributedBuilds = true;
+    buildMachines = [
+      {
+        hostName = "nixos.local";
+        sshUser = "marcel";
+        systems = ["aarch64-linux" "x86_64-linux"];
+        maxJobs = 4;
+        speedFactor = 2;
+        supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
+        sshKey = "/data/data/com.termux.nix/files/home/.ssh/id_mlab";
+      }
+    ];
+    extraOptions = ''
+      builders-use-substitutes = true
+    '';
+  };
+
   environment.packages = with pkgs; [
     openssh
     git

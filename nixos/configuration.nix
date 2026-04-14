@@ -47,6 +47,11 @@
     connect-timeout = 15;
   };
 
+  services.tailscale.enable = true;
+
+  networking.firewall.trustedInterfaces = ["tailscale0"];
+  networking.firewall.allowedUDPPorts = [config.services.tailscale.port];
+
   services.protonmail-bridge = {
     enable = true;
   };
@@ -374,6 +379,10 @@
 
   networking.firewall.enable = false;
   networking.networkmanager.wifi.powersave = false;
+
+  users.users.marcel.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe+ZUUCwet0+uaGYfr3hE4zNVASmQPWuoGpk5QAbKG4 nix-on-droid@localhost"
+  ];
 
   system.stateVersion = "26.05";
 }

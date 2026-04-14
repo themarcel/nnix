@@ -9,6 +9,7 @@ with pkgs; [
   # rff
   # aider-chat
   appimage-run
+  timer
   astro-language-server
   atool
   atuin

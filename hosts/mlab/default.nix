@@ -10,6 +10,10 @@
       port = 8000;
       href = "https://audiobooks.marcel.cool";
     };
+    authelia = {
+      port = 9091;
+      href = "https://auth.marcel.cool";
+    };
     bazarr = {
       port = 6767;
       href = "https://bazarr.marcel.cool";
@@ -116,7 +120,7 @@
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto https;
         proxy_set_header X-Forwarded-Host $host;
 
         proxy_connect_timeout 3s;
@@ -156,6 +160,13 @@ in {
     secrets = {
       "app_pass" = {};
       "app_user" = {};
+      "authelia_jwt_secret" = {owner = "authelia-main";};
+      "authelia_session_secret" = {owner = "authelia-main";};
+      "authelia_storage_encryption_key" = {owner = "authelia-main";};
+      "authelia_oidc_hmac_secret" = {owner = "authelia-main";};
+      "authelia_oidc_issuer_key" = {owner = "authelia-main";};
+      "authelia_tailscale_client_secret" = {owner = "authelia-main";};
+      "authelia_admin_password" = {owner = "authelia-main";};
       "bazarr_api" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
@@ -189,6 +200,29 @@ in {
       "grafana_secret_key" = {
         owner = "grafana";
       };
+    };
+
+    templates."authelia-env" = {
+      content = ''
+        AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET=${config.sops.placeholder.authelia_jwt_secret}
+        AUTHELIA_SESSION_SECRET=${config.sops.placeholder.authelia_session_secret}
+        AUTHELIA_STORAGE_ENCRYPTION_KEY=${config.sops.placeholder.authelia_storage_encryption_key}
+        AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET=${config.sops.placeholder.authelia_oidc_hmac_secret}
+      '';
+      owner = "authelia-main";
+    };
+
+    templates."authelia-users" = {
+      content = ''
+        users:
+          authelia:
+            displayname: "Authelia Admin"
+            password: "${config.sops.placeholder.authelia_admin_password}"
+            email: "authelia@auth.marcel.cool"
+            groups:
+              - admins
+      '';
+      owner = "authelia-main";
     };
 
     templates."tunnel.json" = {
@@ -240,6 +274,21 @@ in {
     virtualHosts =
       serviceVirtualHosts
       // {
+        "auth.marcel.cool" = let
+          base = mkProxyHost "authelia" services.authelia;
+        in
+          base
+          // {
+            locations =
+              base.locations
+              // {
+                "/.well-known/webfinger".extraConfig = ''
+                  add_header Content-Type application/jrd+json;
+                  return 200 '{"subject":"acct:authelia@auth.marcel.cool","links":[{"rel":"http://openid.net/specs/connect/1.0/issuer","href":"https://auth.marcel.cool"}]}';
+                '';
+              };
+          };
+
         "_" = {
           default = true;
           listen = [
@@ -516,7 +565,12 @@ in {
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = config.sops.templates."tunnel.json".path;
         default = "http://127.0.0.1:80";
-        ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
+        # ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
+        ingress =
+          (lib.mapAttrs (name: service: "http://127.0.0.1:80") services)
+          // {
+            "marcel.cool" = "http://127.0.0.1:80";
+          };
       };
     };
   };
@@ -736,23 +790,6 @@ in {
     '')
   ];
 
-  # Force 10Gbps and disable auto-negotiation on the X710 interface
-  systemd.services.ethtool-force-10g = {
-    description = "Force 10Gbps and disable autoneg on enp2s0f0np0";
-    after = [
-      "network-pre.target"
-      "sys-subsystem-net-devices-enp2s0f0np0.device"
-    ];
-    wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
-    wantedBy = ["multi-user.target"];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "root";
-      ExecStart = "-${pkgs.ethtool}/bin/ethtool -s enp2s0f0np0 speed 10000 duplex full autoneg off";
-      RemainAfterExit = true;
-    };
-  };
-
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
   nix.settings = {
@@ -893,6 +930,77 @@ in {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
+  };
+
+  services.authelia.instances.main = {
+    enable = true;
+    secrets.manual = true;
+
+    settingsFiles = ["/var/lib/authelia-main/jwks.yml"];
+
+    settings = {
+      theme = "dark";
+      server.address = "tcp://0.0.0.0:${toString services.authelia.port}";
+
+      session = {
+        name = "authelia_session";
+        cookies = [
+          {
+            domain = "marcel.cool";
+            authelia_url = "https://auth.marcel.cool";
+            default_redirection_url = "https://home.marcel.cool";
+          }
+        ];
+      };
+
+      access_control = {
+        default_policy = "one_factor";
+      };
+
+      notifier = {
+        filesystem = {
+          filename = "/var/lib/authelia-main/notification.txt";
+        };
+      };
+
+      authentication_backend.file.path = config.sops.templates."authelia-users".path;
+      storage.local.path = "/var/lib/authelia-main/db.sqlite3";
+
+      identity_providers.oidc = {
+        clients = [
+          {
+            client_id = "tailscale";
+            client_name = "Tailscale";
+            client_secret = "$pbkdf2-sha512$310000$nGGxzhdyKtIYCeeywAwYGA$IhOBt2rIZpnMhGb9.LuetMaU8TMyqZCtIdqepFJbzss34G8OC1ZP.a9m131ccd95ThKqOCb3hzMP8.ypTU0E/w";
+            public = false;
+            authorization_policy = "one_factor";
+            redirect_uris = ["https://login.tailscale.com/a/oauth_response"];
+            scopes = ["openid" "profile" "email"];
+            userinfo_signed_response_alg = "none";
+          }
+        ];
+      };
+    };
+  };
+
+  systemd.services.authelia-main = {
+    serviceConfig = {
+      EnvironmentFile = [config.sops.templates."authelia-env".path];
+    };
+
+    preStart = lib.mkBefore ''
+      ${pkgs.coreutils}/bin/cat <<EOF > /var/lib/authelia-main/jwks.yml
+      identity_providers:
+        oidc:
+          jwks:
+            - key_id: "tailscale-key"
+              algorithm: "RS256"
+              use: "sig"
+              key: |
+      EOF
+      ${pkgs.gnused}/bin/sed 's/^/          /' ${config.sops.secrets.authelia_oidc_issuer_key.path} >> /var/lib/authelia-main/jwks.yml
+      ${pkgs.coreutils}/bin/chmod 600 /var/lib/authelia-main/jwks.yml
+    '';
   };
 
   home-manager = {
