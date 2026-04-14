@@ -20,31 +20,30 @@
   };
 
   nix.settings = {
-    max-jobs = "auto";
     # cores = 0; # Use all cores
-    keep-outputs = true;
-    keep-derivations = true;
+
     auto-optimise-store = true;
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    connect-timeout = 15;
+    http-connections = 0;
+    keep-derivations = true;
+    keep-outputs = true;
+    max-jobs = "auto";
+    max-substitution-jobs = 128;
     warn-dirty = false;
+
+    trusted-users = ["root" "marcel"];
+    experimental-features = ["nix-command" "flakes"];
+
     substituters = [
-      "https://nix-community.cachix.org"
       "https://cache.nixos.org"
-      "https://marcelarie.cachix.org"
+      "https://cache.marcel.cool/system"
+      "https://nix-community.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "marcelarie.cachix.org-1:loFQMIgWqiIgfRixHOrEwbGADvFYu8RJXF6jqL0HUy8="
+      "system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM="
     ];
-    trusted-users = [
-      "root"
-      "marcel"
-    ];
-    connect-timeout = 15;
   };
 
   services.tailscale.enable = true;
@@ -73,12 +72,6 @@
 
   systemd.services.mpd.environment = {
     XDG_RUNTIME_DIR = "/run/user/1000";
-  };
-
-  services.cachix-watch-store = {
-    enable = true;
-    cacheName = "marcelarie";
-    cachixTokenFile = config.sops.secrets.cachix_token.path;
   };
 
   nix.gc = {
@@ -308,6 +301,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    attic-client
     vim
     neovim
     wget
@@ -358,9 +352,7 @@
       "SLSKD_PASSWORD" = {
         owner = username;
       };
-      "cachix_token" = {
-        owner = username;
-      };
+      "attic_token" = {};
     };
 
     templates."slskd.env" = {
@@ -375,6 +367,31 @@
       '';
       owner = username;
     };
+
+    templates."attic-watch.env" = {
+      content = ''
+        ATTIC_TOKEN="${config.sops.placeholder.attic_token}"
+      '';
+    };
+  };
+
+  systemd.services.attic-watch-store = {
+    description = "Attic Watch Store";
+    wantedBy = ["multi-user.target"];
+    after = ["network-online.target"];
+
+    serviceConfig = {
+      User = "root";
+      EnvironmentFile = config.sops.templates."attic-watch.env".path;
+      # tells attic to push to the 'system' cache on the 'mlab' server profile
+      ExecStart = "${pkgs.attic-client}/bin/attic watch-store mlab:system";
+      Restart = "always";
+      RestartSec = "10s";
+    };
+    preStart = ''
+      mkdir -p /root/.config/attic
+      ${pkgs.attic-client}/bin/attic login mlab https://cache.marcel.cool "$ATTIC_TOKEN"
+    '';
   };
 
   networking.firewall.enable = false;

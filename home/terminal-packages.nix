@@ -10,7 +10,6 @@ with pkgs; [
   # aider-chat
   appimage-run
   timer
-  ffmpeg_7
   astro-language-server
   atool
   atuin
@@ -31,7 +30,7 @@ with pkgs; [
   chafa
   charm-freeze
   clang-tools
-  claude-code
+  # claude-code
   codex
   cowsay
   cowsay
