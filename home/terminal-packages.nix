@@ -1,13 +1,14 @@
 # Shared cli only package list for both home-manager and nix-on-droid
 {pkgs}:
 with pkgs; [
+  # aider-chat
   # helix
   # helix
   # libreoffice
   # libreoffice
   # lsv
   # rff
-  # aider-chat
+  (pkgs.google-cloud-sdk.withExtraComponents (with pkgs.google-cloud-sdk.components; [gke-gcloud-auth-plugin]))
   appimage-run
   astro-language-server
   atool
@@ -29,6 +30,7 @@ with pkgs; [
   chafa
   charm-freeze
   clang-tools
+  click
   codex
   cowsay
   cowsay
@@ -68,11 +70,6 @@ with pkgs; [
   glirc
   glow
   gnumake
-  (pkgs.google-cloud-sdk.withExtraComponents (
-    with pkgs.google-cloud-sdk.components; [
-      gke-gcloud-auth-plugin
-    ]
-  ))
   gping
   gst_all_1.gstreamer
   haralyzer
@@ -104,6 +101,7 @@ with pkgs; [
   mdx-language-server
   mediainfo
   moor
+  mpc
   murex
   ncdu
   neovim
@@ -114,7 +112,6 @@ with pkgs; [
   nix-search-cli
   nixfmt
   nnn
-  prettier
   nodejs_22
   noisetorch
   nuit
@@ -130,9 +127,11 @@ with pkgs; [
   passff-host
   patchutils
   pfetch
+  pi-coding-agent
   playerctl
   poppler-utils
   prefetch-npm-deps
+  prettier
   prettierd
   prettierd
   pulseaudio-next-output
@@ -144,28 +143,25 @@ with pkgs; [
   rabbitmqadmin-ng
   rclone
   repgrep
+  rich-cli
   ripgrep
+  rmpc
   ruby
   rustup
   sendme
   shellcheck
   shfmt
-  slskd
   slsk-batchdl
-  rmpc
+  slskd
   socat
-  mpc
-  zeroclaw
-  rich-cli
-  click
   solargraph
   sox
   speedtest-cli
   speedtest-rs
   sqlfluff
   sqlite
-  starship
   sshfs
+  starship
   stylua
   sysz
   tailwindcss-language-server
@@ -203,6 +199,7 @@ with pkgs; [
   ytfzf
   zbar
   zellij
+  zeroclaw
   zk
   zoxide
   zsh
