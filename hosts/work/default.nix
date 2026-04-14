@@ -35,6 +35,17 @@ in {
     secrets.work_api_token = {};
   };
 
+  nix.settings = {
+    substituters = [
+      "https://cache.nixos.org"
+      "https://cache.marcel.cool/system"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM="
+    ];
+  };
+
   home.file = let
     link = config.lib.file.mkOutOfStoreSymlink;
     clonesOwn = "${homeDir}/clones/own";

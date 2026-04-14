@@ -10,6 +10,7 @@ with pkgs; [
   # rff
   (pkgs.google-cloud-sdk.withExtraComponents (with pkgs.google-cloud-sdk.components; [gke-gcloud-auth-plugin]))
   appimage-run
+  timer
   astro-language-server
   atool
   atuin

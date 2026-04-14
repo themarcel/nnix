@@ -86,6 +86,16 @@ in {
           IdentitiesOnly = "yes";
         };
       };
+      "droid" = {
+        hostname = "100.112.164.46";
+        user = "nix-on-droid";
+        port = 8022;
+        identityFile = "~/.ssh/id_ed25519";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+          ServerAliveInterval = "60";
+        };
+      };
     };
   };
 

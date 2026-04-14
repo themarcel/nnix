@@ -3,147 +3,20 @@
   pkgs,
   lib,
   inputs,
+  services,
   ...
-}: let
-  services = {
-    audiobooks = {
-      port = 8000;
-      href = "https://audiobooks.marcel.cool";
-    };
-    bazarr = {
-      port = 6767;
-      href = "https://bazarr.marcel.cool";
-    };
-    calibre = {
-      port = 8083;
-      href = "https://calibre.marcel.cool";
-    };
-    chaptarr = {
-      port = 8789;
-      href = "https://chaptarr.marcel.cool";
-    };
-    grafana = {
-      port = 3005;
-      href = "https://grafana.marcel.cool";
-    };
-    home = {
-      port = 8082;
-      href = "https://home.marcel.cool";
-    };
-    immich = {
-      port = 2283;
-      href = "https://img.marcel.cool";
-    };
-    jellyfin = {
-      port = 8096;
-      href = "https://jellyfin.marcel.cool";
-    };
-    lidarr = {
-      port = 8686;
-      href = "https://lidarr.marcel.cool";
-    };
-    navidrome = {
-      port = 4533;
-      href = "https://music.marcel.cool";
-    };
-    openwebui = {
-      port = 3000;
-      href = "https://ai.marcel.cool";
-    };
-    prowlarr = {
-      port = 9696;
-      href = "https://prowlarr.marcel.cool";
-    };
-    qbit = {
-      port = 8081;
-      href = "https://qbit.marcel.cool";
-    };
-    radarr = {
-      port = 7878;
-      href = "https://radarr.marcel.cool";
-    };
-    sabnzbd = {
-      port = 8080;
-      href = "https://sabnzbd.marcel.cool";
-    };
-    seafile = {
-      port = 8008;
-      href = "https://seafile.marcel.cool";
-    };
-    seerr = {
-      port = 5055;
-      href = "https://seerr.marcel.cool";
-    };
-    shoko = {
-      port = 8111;
-      href = "https://shoko.marcel.cool";
-    };
-    slskd = {
-      port = 5030;
-      href = "https://slskd.marcel.cool";
-    };
-    sonarr = {
-      port = 8989;
-      href = "https://sonarr.marcel.cool";
-    };
-    soulbeet = {
-      port = 9765;
-      href = "https://soulbeet.marcel.cool";
-    };
-    status = {
-      port = 3001;
-      href = "https://status.marcel.cool";
-    };
-    prometheus = {
-      port = 9090;
-      href = "http://127.0.0.1:9090";
-    };
-  };
-
-  mkProxyHost = name: service: {
-    serverName = lib.removePrefix "https://" service.href;
-    listen = [
-      {
-        addr = "0.0.0.0";
-        port = 80;
-      }
-    ];
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:${toString service.port}";
-      proxyWebsockets = true;
-      extraConfig = ''
-        # Tell the app what the original URL and IP were
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-
-        proxy_connect_timeout 3s;
-        proxy_send_timeout 30s;
-        proxy_read_timeout 30s;
-        error_page 502 503 504 = @maintenance;
-      '';
-    };
-    extraConfig = ''
-      location @maintenance {
-        return 307 https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href};
-      }
-    '';
-  };
-
-  serviceVirtualHosts = lib.mapAttrs mkProxyHost services;
-in {
+}: {
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
+    ./proxy.nix
     ./arr
     ./graphana.nix
     ./homepage.nix
     ./seafile.nix
     ./shoko.nix
+    ./attic.nix
   ];
-  _module.args.services = services;
 
   time.timeZone = "Europe/Madrid";
 
@@ -156,14 +29,18 @@ in {
     secrets = {
       "app_pass" = {};
       "app_user" = {};
+      "authelia_jwt_secret" = {owner = "authelia-main";};
+      "authelia_session_secret" = {owner = "authelia-main";};
+      "authelia_storage_encryption_key" = {owner = "authelia-main";};
+      "authelia_oidc_hmac_secret" = {owner = "authelia-main";};
+      "authelia_oidc_issuer_key" = {owner = "authelia-main";};
+      "authelia_tailscale_client_secret" = {owner = "authelia-main";};
+      "authelia_admin_password" = {owner = "authelia-main";};
       "bazarr_api" = {};
+      "cloudflare_acme_token" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
-      };
-      "cloudflared_tunnel_json" = {
-        owner = "cloudflared";
-        group = "cloudflared";
       };
       "immich_api" = {};
       "jellyfin_api" = {};
@@ -191,10 +68,31 @@ in {
       };
     };
 
-    templates."tunnel.json" = {
-      content = config.sops.placeholder.cloudflared_tunnel_json;
-      owner = "cloudflared";
-      group = "cloudflared";
+    templates."authelia-env" = {
+      content = ''
+        AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET=${config.sops.placeholder.authelia_jwt_secret}
+        AUTHELIA_SESSION_SECRET=${config.sops.placeholder.authelia_session_secret}
+        AUTHELIA_STORAGE_ENCRYPTION_KEY=${config.sops.placeholder.authelia_storage_encryption_key}
+        AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET=${config.sops.placeholder.authelia_oidc_hmac_secret}
+      '';
+      owner = "authelia-main";
+    };
+    templates."cloudflare-acme.env" = {
+      content = "CF_DNS_API_TOKEN=${config.sops.placeholder.cloudflare_acme_token}";
+      owner = "acme";
+    };
+
+    templates."authelia-users" = {
+      content = ''
+        users:
+          authelia:
+            displayname: "Authelia Admin"
+            password: "${config.sops.placeholder.authelia_admin_password}"
+            email: "authelia@auth.marcel.cool"
+            groups:
+              - admins
+      '';
+      owner = "authelia-main";
     };
 
     templates."qBittorrent.conf" = {
@@ -232,28 +130,6 @@ in {
   };
 
   services.uptime-kuma.enable = true;
-
-  services.nginx = {
-    enable = true;
-    clientMaxBodySize = "0";
-
-    virtualHosts =
-      serviceVirtualHosts
-      // {
-        "_" = {
-          default = true;
-          listen = [
-            {
-              addr = "0.0.0.0";
-              port = 80;
-            }
-          ];
-          locations."/" = {
-            return = "307 https://maintenance.marcel.cool";
-          };
-        };
-      };
-  };
 
   services.audiobookshelf = {
     enable = true;
@@ -510,17 +386,6 @@ in {
     ];
   };
 
-  services.cloudflared = {
-    enable = true;
-    tunnels = {
-      "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
-        credentialsFile = config.sops.templates."tunnel.json".path;
-        default = "http://127.0.0.1:80";
-        ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
-      };
-    };
-  };
-
   services.lidarr = {
     enable = true;
     openFirewall = true;
@@ -622,7 +487,8 @@ in {
       enable = true;
       allowedTCPPorts =
         [
-          80 # nginx catch-all
+          80 # nginx catch-all / http to https redirects
+          443 # Nginx HTTPS
           23951 # Qbitorrent
           50300 # Soulseek
           9117 # Jackett
@@ -701,6 +567,7 @@ in {
   };
 
   environment.systemPackages = with pkgs; [
+    attic-client
     erdtree
     git
     vim
@@ -725,33 +592,17 @@ in {
     ethtool
     librespeed-cli
     libreswan
+    ffmpeg_7
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
         sudo podman exec -it soulbeet beet import /var/lib/slskd/music/downloads
       else
         echo "Importing: $1"
-        sudo podman exec -i soulbeet beet import -q -s -A "/var/lib/slskd/music/downloads/$1"
+        sudo podman exec -i soulbeet beet import "/var/lib/slskd/music/downloads/$1"
       fi
     '')
   ];
-
-  # Force 10Gbps and disable auto-negotiation on the X710 interface
-  systemd.services.ethtool-force-10g = {
-    description = "Force 10Gbps and disable autoneg on enp2s0f0np0";
-    after = [
-      "network-pre.target"
-      "sys-subsystem-net-devices-enp2s0f0np0.device"
-    ];
-    wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
-    wantedBy = ["multi-user.target"];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "root";
-      ExecStart = "-${pkgs.ethtool}/bin/ethtool -s enp2s0f0np0 speed 10000 duplex full autoneg off";
-      RemainAfterExit = true;
-    };
-  };
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
@@ -794,12 +645,6 @@ in {
       createHome = true;
     };
     groups.slskd = {};
-
-    users.cloudflared = {
-      isSystemUser = true;
-      group = "cloudflared";
-    };
-    groups.cloudflared = {};
 
     users.navidrome = {
       isSystemUser = true;
@@ -893,6 +738,77 @@ in {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
+  };
+
+  services.authelia.instances.main = {
+    enable = true;
+    secrets.manual = true;
+
+    settingsFiles = ["/var/lib/authelia-main/jwks.yml"];
+
+    settings = {
+      theme = "dark";
+      server.address = "tcp://0.0.0.0:${toString services.auth.port}";
+
+      session = {
+        name = "authelia_session";
+        cookies = [
+          {
+            domain = "marcel.cool";
+            authelia_url = "https://auth.marcel.cool";
+            default_redirection_url = "https://home.marcel.cool";
+          }
+        ];
+      };
+
+      access_control = {
+        default_policy = "one_factor";
+      };
+
+      notifier = {
+        filesystem = {
+          filename = "/var/lib/authelia-main/notification.txt";
+        };
+      };
+
+      authentication_backend.file.path = config.sops.templates."authelia-users".path;
+      storage.local.path = "/var/lib/authelia-main/db.sqlite3";
+
+      identity_providers.oidc = {
+        clients = [
+          {
+            client_id = "tailscale";
+            client_name = "Tailscale";
+            client_secret = "$pbkdf2-sha512$310000$nGGxzhdyKtIYCeeywAwYGA$IhOBt2rIZpnMhGb9.LuetMaU8TMyqZCtIdqepFJbzss34G8OC1ZP.a9m131ccd95ThKqOCb3hzMP8.ypTU0E/w";
+            public = false;
+            authorization_policy = "one_factor";
+            redirect_uris = ["https://login.tailscale.com/a/oauth_response"];
+            scopes = ["openid" "profile" "email"];
+            userinfo_signed_response_alg = "none";
+          }
+        ];
+      };
+    };
+  };
+
+  systemd.services.authelia-main = {
+    serviceConfig = {
+      EnvironmentFile = [config.sops.templates."authelia-env".path];
+    };
+
+    preStart = lib.mkBefore ''
+      ${pkgs.coreutils}/bin/cat <<EOF > /var/lib/authelia-main/jwks.yml
+      identity_providers:
+        oidc:
+          jwks:
+            - key_id: "tailscale-key"
+              algorithm: "RS256"
+              use: "sig"
+              key: |
+      EOF
+      ${pkgs.gnused}/bin/sed 's/^/          /' ${config.sops.secrets.authelia_oidc_issuer_key.path} >> /var/lib/authelia-main/jwks.yml
+      ${pkgs.coreutils}/bin/chmod 600 /var/lib/authelia-main/jwks.yml
+    '';
   };
 
   home-manager = {
