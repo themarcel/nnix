@@ -31,6 +31,7 @@ with pkgs; [
   chafa
   charm-freeze
   clang-tools
+  claude-code
   codex
   cowsay
   cowsay
