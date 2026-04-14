@@ -779,6 +779,7 @@ in {
     ethtool
     librespeed-cli
     libreswan
+    ffmpeg_7
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."

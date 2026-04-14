@@ -10,6 +10,7 @@ with pkgs; [
   # aider-chat
   appimage-run
   timer
+  ffmpeg_7
   astro-language-server
   atool
   atuin
