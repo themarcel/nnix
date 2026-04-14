@@ -6,16 +6,19 @@
   ...
 }: {
   imports = [
-    # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    # ./nixbuild-enabler.nix # enable this for external building with nixbuild.net
   ];
 
-  programs.mosh.enable = true;
+  boot = {
+    kernelPackages = pkgs.linuxPackages;
+    binfmt.emulatedSystems = ["aarch64-linux"];
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+  };
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.loader.efi.canTouchEfiVariables = true;
   nix.settings = {
     max-jobs = "auto";
     # cores = 0; # Use all cores
@@ -30,7 +33,6 @@
     substituters = [
       "https://nix-community.cachix.org"
       "https://cache.nixos.org"
-      # "https://hyprland.cachix.org"
       "https://marcelarie.cachix.org"
     ];
     trusted-public-keys = [
@@ -62,10 +64,6 @@
         }
       ];
     };
-
-    # Optional:
-    # network.listenAddress = "any"; # if you want to allow non-localhost connections
-    # network.startWhenNeeded = true; # systemd feature: only start MPD service upon connection to its socket
   };
 
   systemd.services.mpd.environment = {
@@ -97,6 +95,7 @@
       powerOnBoot = true;
       settings = {
         General = {
+          Experimental = true;
           ReconnectAttempts = "0";
         };
       };
@@ -105,7 +104,6 @@
   services.mullvad-vpn.enable = true;
   services.flatpak.enable = true;
 
-  # Enable Docker
   virtualisation.docker = {
     enable = true;
     enableOnBoot = true;
@@ -115,14 +113,13 @@
     };
   };
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = with pkgs; [networkmanager-openvpn];
-  # Enable the OpenSSH daemon.
+  networking = {
+    # enableIPv6 = false;
+    networkmanager = {
+      enable = true;
+      plugins = with pkgs; [networkmanager-openvpn];
+    };
+  };
   services.openssh = {
     enable = true;
     settings = {
@@ -131,14 +128,9 @@
       PermitRootLogin = "no";
     };
   };
-  # networking.enableIPv6 = false;
 
-  # Set your time zone.
   time.timeZone = "Europe/Madrid";
-
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-
   i18n.extraLocaleSettings = {
     LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
@@ -151,13 +143,8 @@
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Enable the X11 windowing system.
-  # You can disable this if you're only using the Wayland session.
-  # services.xserver.enable = true;
-
-  # Enable the KDE Plasma Desktop Environment.
+  # kde
   services.desktopManager.plasma6.enable = true;
-  programs.hyprland.enable = true;
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [];
 
@@ -210,9 +197,9 @@
     };
   };
 
-  services.ollama = {
-    enable = true;
-  };
+  # services.ollama = {
+  #   enable = true;
+  # };
 
   systemd.services.ollama.environment = {
     OLLAMA_CONTEXT_LENGTH = "32768";
@@ -241,17 +228,16 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber.enable = true;
+    wireplumber = {
+      enable = true;
+    };
   };
-  # services.udev.packages = [pkgs.mixxx];
+
   musnix.enable = false;
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-
   security = {
-    # If enabled, pam_wallet will attempt to automatically unlock the user's default KDE wallet upon login.
-    # If the user has no wallet named "kdewallet", or the login password does not match their wallet password,
+    # if enabled, pam_wallet will attempt to automatically unlock the user's default kde wallet upon login.
+    # if the user has no wallet named "kdewallet", or the login password does not match their wallet password,
     # KDE will prompt separately after login.
     pam = {
       services = {
@@ -261,7 +247,7 @@
             package = pkgs.kdePackages.kwallet-pam;
           };
         };
-        # Add GNOME keyring support for KDE applications
+        # add gnome keyring support for kde applications
         login = {
           enableGnomeKeyring = true;
         };
@@ -269,7 +255,6 @@
     };
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.marcel = {
     isNormalUser = true;
     description = "marcel";
@@ -281,15 +266,11 @@
     ];
     packages = with pkgs; [
       kitty
-      # kdePackages.kate
-      #  thunderbird
     ];
   };
 
   services.dbus.enable = true;
-  # Use KWallet instead of GNOME keyring for KDE Plasma
   services.gnome.gnome-keyring.enable = false;
-  programs.seahorse.enable = true;
 
   services.displayManager = {
     sddm = {
@@ -308,37 +289,25 @@
     };
   };
 
-  # programs.firefox = {
-  #   enable = true;
-  #
-  #   policies = {
-  #     Preferences = {
-  #       "extensions.pocket.enabled" = {
-  #         Value = false;
-  #         Status = "locked";
-  #       };
-  #       "ui.key.menuAccessKeyFocuses" = {
-  #         Value = false;
-  #         Status = "locked";
-  #       };
-  #       "browser.tabs.allowTabDetach" = {
-  #         Value = false;
-  #         Status = "locked";
-  #       };
-  #       "alerts.useSystemBackend" = {
-  #         Value = true;
-  #         Status = "locked";
-  #       };
-  #     };
-  #   };
-  # };
+  programs.seahorse.enable = true;
+  programs.hyprland.enable = true;
+  programs.mosh.enable = true;
+
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+    pinentryPackage = pkgs.pinentry-curses;
+  };
 
   environment.systemPackages = with pkgs; [
     vim
     neovim
     wget
-    # mullvad-vpn
-    # mullvad
+    mullvad-vpn
+    mullvad
     git
     gnumake
     usbutils
@@ -357,29 +326,36 @@
     '')
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-    pinentryPackage = pkgs.pinentry-curses;
-  };
-
   sops = {
     defaultSopsFile = ../secrets/nixos.yaml;
     defaultSopsFormat = "yaml";
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "SLSKD_SLSK_USERNAME" = {owner = username;};
-      "SLSKD_SLSK_PASSWORD" = {owner = username;};
-      "SLSKD_SOULSEEK_PASSWORD" = {owner = username;};
-      "SLSKD_WEB_USERNAME" = {owner = username;};
-      "SLSKD_WEB_PASSWORD" = {owner = username;};
-      "SLSKD_USERNAME" = {owner = username;};
-      "SLSKD_PASSWORD" = {owner = username;};
-      "cachix_token" = {owner = username;};
+      "SLSKD_SLSK_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_SLSK_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_SOULSEEK_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_WEB_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_WEB_PASSWORD" = {
+        owner = username;
+      };
+      "SLSKD_USERNAME" = {
+        owner = username;
+      };
+      "SLSKD_PASSWORD" = {
+        owner = username;
+      };
+      "cachix_token" = {
+        owner = username;
+      };
     };
 
     templates."slskd.env" = {
@@ -396,20 +372,8 @@
     };
   };
 
-  # List services that you want to enable:
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
   networking.firewall.enable = false;
   networking.networkmanager.wifi.powersave = false;
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

@@ -4,11 +4,146 @@
   lib,
   inputs,
   ...
-}: {
+}: let
+  services = {
+    audiobooks = {
+      port = 8000;
+      href = "https://audiobooks.marcel.cool";
+    };
+    bazarr = {
+      port = 6767;
+      href = "https://bazarr.marcel.cool";
+    };
+    calibre = {
+      port = 8083;
+      href = "https://calibre.marcel.cool";
+    };
+    chaptarr = {
+      port = 8789;
+      href = "https://chaptarr.marcel.cool";
+    };
+    grafana = {
+      port = 3005;
+      href = "https://grafana.marcel.cool";
+    };
+    home = {
+      port = 8082;
+      href = "https://home.marcel.cool";
+    };
+    immich = {
+      port = 2283;
+      href = "https://img.marcel.cool";
+    };
+    jellyfin = {
+      port = 8096;
+      href = "https://jellyfin.marcel.cool";
+    };
+    lidarr = {
+      port = 8686;
+      href = "https://lidarr.marcel.cool";
+    };
+    navidrome = {
+      port = 4533;
+      href = "https://music.marcel.cool";
+    };
+    openwebui = {
+      port = 3000;
+      href = "https://ai.marcel.cool";
+    };
+    prowlarr = {
+      port = 9696;
+      href = "https://prowlarr.marcel.cool";
+    };
+    qbit = {
+      port = 8081;
+      href = "https://qbit.marcel.cool";
+    };
+    radarr = {
+      port = 7878;
+      href = "https://radarr.marcel.cool";
+    };
+    sabnzbd = {
+      port = 8080;
+      href = "https://sabnzbd.marcel.cool";
+    };
+    seafile = {
+      port = 8008;
+      href = "https://seafile.marcel.cool";
+    };
+    seerr = {
+      port = 5055;
+      href = "https://seerr.marcel.cool";
+    };
+    shoko = {
+      port = 8111;
+      href = "https://shoko.marcel.cool";
+    };
+    slskd = {
+      port = 5030;
+      href = "https://slskd.marcel.cool";
+    };
+    sonarr = {
+      port = 8989;
+      href = "https://sonarr.marcel.cool";
+    };
+    soulbeet = {
+      port = 9765;
+      href = "https://soulbeet.marcel.cool";
+    };
+    status = {
+      port = 3001;
+      href = "https://status.marcel.cool";
+    };
+    prometheus = {
+      port = 9090;
+      href = "http://127.0.0.1:9090";
+    };
+  };
+
+  mkProxyHost = name: service: {
+    serverName = lib.removePrefix "https://" service.href;
+    listen = [
+      {
+        addr = "0.0.0.0";
+        port = 80;
+      }
+    ];
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${toString service.port}";
+      proxyWebsockets = true;
+      extraConfig = ''
+        # Tell the app what the original URL and IP were
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+
+        proxy_connect_timeout 3s;
+        proxy_send_timeout 30s;
+        proxy_read_timeout 30s;
+        error_page 502 503 504 = @maintenance;
+      '';
+    };
+    extraConfig = ''
+      location @maintenance {
+        return 307 https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href};
+      }
+    '';
+  };
+
+  serviceVirtualHosts = lib.mapAttrs mkProxyHost services;
+in {
   imports = [
     ./hardware-configuration.nix
     inputs.home-manager.nixosModules.home-manager
+    ./arr
+    ./graphana.nix
+    ./homepage.nix
+    ./seafile.nix
+    ./shoko.nix
   ];
+  _module.args.services = services;
 
   time.timeZone = "Europe/Madrid";
 
@@ -19,38 +154,41 @@
     age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     secrets = {
-      "slsk_user" = {};
-      "slsk_pass" = {};
-      "web_user" = {};
-      "web_pass" = {};
-      "app_user" = {};
       "app_pass" = {};
-      "josep_password" = {
-        neededForUsers = true;
-      };
+      "app_user" = {};
+      "bazarr_api" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
         group = "ddclient";
       };
-      "slskd_api_key" = {};
-      "soulbeet_secret_key" = {};
       "cloudflared_tunnel_json" = {
         owner = "cloudflared";
         group = "cloudflared";
       };
-      "sonarr_api" = {};
-      "radarr_api" = {};
-      "lidarr_api" = {};
-      "prowlarr_api" = {};
-      "sabnzbd_api" = {};
+      "immich_api" = {};
       "jellyfin_api" = {};
-      "navidrome_token" = {};
+      "josep_password" = {
+        neededForUsers = true;
+      };
+      "lidarr_api" = {};
       "navidrome_salt" = {};
+      "navidrome_token" = {};
+      "prowlarr_api" = {};
       "qbit_password_hash" = {};
       "qbit_password_salt" = {};
-      "bazarr_api" = {};
-      "immich_api" = {};
+      "radarr_api" = {};
+      "sabnzbd_api" = {};
       "seerr_api" = {};
+      "slsk_pass" = {};
+      "slsk_user" = {};
+      "slskd_api_key" = {};
+      "sonarr_api" = {};
+      "soulbeet_secret_key" = {};
+      "web_pass" = {};
+      "web_user" = {};
+      "grafana_secret_key" = {
+        owner = "grafana";
+      };
     };
 
     templates."tunnel.json" = {
@@ -63,10 +201,14 @@
       content = ''
         [Preferences]
         WebUI\Username=${config.sops.placeholder.web_user}
-        WebUI\Password_PBKDF2="@ByteArray(${config.sops.placeholder.qbit_password_hash})"
-        WebUI\Password_Salt="@ByteArray(${config.sops.placeholder.qbit_password_salt})"
-        WebUI\Port=8081
-        WebUI\AuthSubnetWhitelist=127.0.0.1/32
+        WebUI\Port=${toString services.qbit.port}
+        WebUI\LocalHostAuthentication=false
+        WebUI\AuthSubnetWhitelist=127.0.0.1/32,192.168.1.0/24
+        Connection\AddressFamily=Both
+        Connection\Interface=enp87s0
+        Downloads\SavePath=/var/lib/media/downloads/
+        Session\DefaultSavePath=/var/lib/media/downloads/
+        Session\TempPath=/var/lib/media/downloads/incomplete/
       '';
       owner = "qbittorrent";
       group = "media";
@@ -74,6 +216,8 @@
 
     templates."slskd-mlab.env" = {
       content = ''
+        APP_DIR=/var/lib/slskd
+
         SLSKD_SLSK_USERNAME='${config.sops.placeholder.slsk_user}'
         SLSKD_SLSK_PASSWORD='${config.sops.placeholder.slsk_pass}'
 
@@ -85,43 +229,69 @@
       '';
       owner = "slskd";
     };
-
-    templates."homepage.env" = {
-      content = ''
-        HOMEPAGE_ALLOWED_HOSTS="home.marcel.cool,127.0.0.1,localhost"
-        HOMEPAGE_VAR_WEB_USER='${config.sops.placeholder.web_user}'
-        HOMEPAGE_VAR_WEB_PASS='${config.sops.placeholder.web_pass}'
-        HOMEPAGE_VAR_SONARR_API='${config.sops.placeholder.sonarr_api}'
-        HOMEPAGE_VAR_RADARR_API='${config.sops.placeholder.radarr_api}'
-        HOMEPAGE_VAR_LIDARR_API='${config.sops.placeholder.lidarr_api}'
-        HOMEPAGE_VAR_PROWLARR_API='${config.sops.placeholder.prowlarr_api}'
-        HOMEPAGE_VAR_SABNZBD_API='${config.sops.placeholder.sabnzbd_api}'
-        HOMEPAGE_VAR_JELLYFIN_API='${config.sops.placeholder.jellyfin_api}'
-        HOMEPAGE_VAR_NAVIDROME_TOKEN='${config.sops.placeholder.navidrome_token}'
-        HOMEPAGE_VAR_NAVIDROME_SALT='${config.sops.placeholder.navidrome_salt}'
-        HOMEPAGE_VAR_BAZARR_API='${config.sops.placeholder.bazarr_api}'
-        HOMEPAGE_VAR_IMMICH_API='${config.sops.placeholder.immich_api}'
-        HOMEPAGE_VAR_SEERR_API='${config.sops.placeholder.seerr_api}'
-      '';
-    };
   };
+
+  services.uptime-kuma.enable = true;
 
   services.nginx = {
     enable = true;
-    virtualHosts."_" = {
-      default = true;
-      listen = [
-        {
-          addr = "0.0.0.0";
-          port = 80;
-        }
-      ];
-      root = ./maintenance;
-      locations."/" = {
-        tryFiles = "$uri /index.html";
+    clientMaxBodySize = "0";
+
+    virtualHosts =
+      serviceVirtualHosts
+      // {
+        "_" = {
+          default = true;
+          listen = [
+            {
+              addr = "0.0.0.0";
+              port = 80;
+            }
+          ];
+          locations."/" = {
+            return = "307 https://maintenance.marcel.cool";
+          };
+        };
       };
-    };
   };
+
+  services.audiobookshelf = {
+    enable = true;
+    port = services.audiobooks.port;
+    openFirewall = true;
+  };
+  users.users.audiobookshelf = {
+    extraGroups = ["media"];
+  };
+
+  virtualisation.oci-containers.containers.calibre-web-automated = {
+    image = "crocodilestick/calibre-web-automated:latest";
+    volumes = [
+      "/var/lib/calibre-web-automated/config:/config"
+      "/var/lib/media/books:/calibre-library"
+      "/var/lib/media/books/import:/cwa-book-ingest"
+    ];
+    environment = {
+      PUID = "951";
+      PGID = "986";
+      TZ = config.time.timeZone;
+      DOCKER_MODS = "linuxserver/mods:universal-calibre";
+    };
+    extraOptions = [
+      "--network=host"
+      "--no-healthcheck"
+    ];
+  };
+  users.users.calibre = {
+    isSystemUser = true;
+    group = "calibre";
+    extraGroups = ["media"];
+    uid = 951;
+  };
+  users.groups.calibre = {
+    gid = 951;
+  };
+  users.groups.media.gid = 986;
 
   services.sonarr = {
     enable = true;
@@ -129,7 +299,7 @@
   };
 
   systemd.tmpfiles.rules = [
-    # soulbeet and slskd
+    # Soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
     "d /var/lib/slskd 0755 slskd slskd -"
     "d /var/lib/slskd/music 0755 slskd slskd -"
@@ -137,23 +307,37 @@
     "d /var/lib/slskd/music/incompleted 0755 slskd slskd -"
     "d /etc/slskd 0755 slskd slskd -"
 
-    # shared media stack
-    # we use root:media so every app in the media group has rwx access
+    # Shared Media Stack Base
     "d /var/lib/media 0775 root media -"
+
+    # Set GID 2775 on download and import folders ensures
+    # that files created by one app are writable by the whole 'media' group.
     "d /var/lib/media/downloads 2775 root media -"
-    "d /var/lib/media/downloads/incomplete 0775 root media -"
+    "d /var/lib/media/downloads/incomplete 2775 root media -"
+
+    # Media Folders
     "d /var/lib/media/tv 0775 root media -"
     "d /var/lib/media/movies 0775 root media -"
     "d /var/lib/media/music 0775 root media -"
+    "d /var/lib/media/audiobooks 2775 root media -"
+
+    # Books & Calibre Stack
+    # We give 'calibre' primary ownership, but 'media' group rwx access
+    "d /var/lib/media/books 0775 calibre media -"
+    "d /var/lib/media/books/import 2775 calibre media -"
+    "d /var/lib/calibre-web-automated/config 0775 calibre media -"
+
+    # Service Specific
     "d /var/lib/slskd/music/share 0775 slskd media -"
     "d /var/lib/seerr 0775 1000 media -"
-    "d /var/lib/media/books 0775 root media -"
-    "d /var/lib/media/audiobooks 0775 root media -"
     "d /var/lib/chaptarr 0775 chaptarr media -"
 
     # SABnzbd
-    "d /var/lib/sabnzbd 0750 sabnzbd sabnzbd -"
-    "f /var/lib/sabnzbd/sabnzbd.ini 0640 sabnzbd sabnzbd -"
+    "d /var/lib/sabnzbd 0775 sabnzbd media -"
+
+    # qbit
+    "d /var/lib/qbittorrent 0775 qbittorrent media -"
+    "d /var/lib/qbittorrent/.config/qBittorrent 0750 qbittorrent qbittorrent -"
   ];
 
   services.jellyfin = {
@@ -170,31 +354,24 @@
   services.qbittorrent = {
     enable = true;
     openFirewall = true;
-    webuiPort = 8081;
+    webuiPort = services.qbit.port;
   };
   systemd.services.qbittorrent.preStart = ''
-    mkdir -p /var/lib/qbittorrent/.config/qBittorrent
-    cp -f ${config.sops.templates."qBittorrent.conf".path} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
-    # Use the specific user/group from the config to avoid "Invalid Argument"
-    chown ${config.services.qbittorrent.user}:${config.services.qbittorrent.group} /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    # The directory structure is guaranteed by systemd.tmpfiles.rules
+    cp -f ${
+      config.sops.templates."qBittorrent.conf".path
+    } /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    # Ensure correct permissions for the copied config
     chmod 600 /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
   '';
 
   systemd.services.ddclient.after = ["nss-user-lookup.target"];
   systemd.services.slskd.serviceConfig = {
-    ProtectSystem = lib.mkForce false;
-    PrivateTmp = lib.mkForce false;
-    ProtectHome = lib.mkForce false;
-    PrivateDevices = lib.mkForce false;
-    ProtectKernelTunables = lib.mkForce false;
-    ProtectKernelModules = lib.mkForce false;
-    ProtectControlGroups = lib.mkForce false;
-    RestrictNamespaces = lib.mkForce false;
-    ReadWritePaths = lib.mkForce [
-      "/var/lib/slskd"
-      "/var/lib/slskd/music"
-      "/etc/slskd"
-    ];
+    Restart = lib.mkForce "always";
+    RestartSec = "5s";
+    StateDirectory = "slskd";
+    WorkingDirectory = "/var/lib/slskd";
+    UMask = "0022";
   };
 
   services.postgresql = {
@@ -236,7 +413,7 @@
   services.open-webui = {
     enable = true;
     host = "0.0.0.0";
-    port = 3000;
+    port = services.openwebui.port;
   };
 
   services.ddclient = {
@@ -247,7 +424,8 @@
     username = "token";
     passwordFile = config.sops.secrets.cloudflare_ddclient_token.path;
     domains = ["ssh.marcel.cool"];
-    usev4 = "webv4, webv4=cloudflare";
+    usev4 = "webv4, webv4=ifconfig.me";
+    usev6 = "webv6, webv6=api6.ipify.org";
     ssl = true;
   };
 
@@ -255,16 +433,11 @@
   virtualisation.oci-containers.backend = "podman";
 
   sops.templates."soulbeet.env".content = ''
-    # Connection to Slskd
-    SLSKD_URL=http://127.0.0.1:5030
-    # SLSKD_API_KEY=slskdAPIkey9988776655aabbccdd
-
-    # Connection to Navidrome
-    NAVIDROME_URL=http://127.0.0.1:4533
+    SLSKD_URL=http://127.0.0.1:${toString services.slskd.port}
+    # SLSKD_API_KEY=${config.sops.placeholder.slskd_api_key}
+    NAVIDROME_URL=http://127.0.0.1:${toString services.navidrome.port}
     NAVIDROME_USERNAME=${config.sops.placeholder.web_user}
     NAVIDROME_PASSWORD=${config.sops.placeholder.web_pass}
-
-    # Soulbeet Internal
     SECRET_KEY=${config.sops.placeholder.soulbeet_secret_key}
     DATABASE_URL=sqlite:/data/soulbeet.db
     DOWNLOAD_PATH=/var/lib/slskd/music/downloads
@@ -275,12 +448,20 @@
   environment.etc."soulbeet/beets_config.yaml".text = ''
     directory: /music
     library: /data/soulbeet.db
+
+    plugins: fromfilename
+
     import:
       move: yes
+      write: yes
+      quiet_fallback: asis
   '';
 
   virtualisation.oci-containers.containers.soulbeet = {
     image = "docker.io/docccccc/soulbeet:latest";
+    environment = {
+      BEETSDIR = "/config";
+    };
     volumes = [
       "/var/lib/soulbeet:/data"
       "/var/lib/slskd/music/downloads:/var/lib/slskd/music/downloads"
@@ -300,7 +481,7 @@
     ];
     environment = {
       TZ = config.time.timeZone;
-      PORT = "5055";
+      PORT = toString services.seerr.port;
     };
     extraOptions = [
       "--network=host"
@@ -312,14 +493,16 @@
     image = "robertlordhood/chaptarr:latest";
     volumes = [
       "/var/lib/chaptarr:/config"
-      "/var/lib/media/books:/books"
-      "/var/lib/media/audiobooks:/audiobooks"
+      "/var/lib/media/books:/var/lib/media/books"
+      "/var/lib/media/audiobooks:/var/lib/media/audiobooks"
       "/var/lib/media/downloads:/var/lib/media/downloads"
+      "/var/lib/media/books/import:/var/lib/media/books/import"
     ];
     environment = {
       TZ = config.time.timeZone;
       PUID = "950"; # static chaptarr user UID
       PGID = "986"; # system's 'media' group GID
+      UMASK = "002"; # allows CWA to move files
     };
     extraOptions = [
       "--network=host"
@@ -333,24 +516,7 @@
       "fd3b9e36-1dac-426c-9f99-31128df4f799" = {
         credentialsFile = config.sops.templates."tunnel.json".path;
         default = "http://127.0.0.1:80";
-        ingress = {
-          "ai.marcel.cool" = "http://127.0.0.1:3000";
-          "music.marcel.cool" = "http://127.0.0.1:4533";
-          "slskd.marcel.cool" = "http://127.0.0.1:5030";
-          "soulbeet.marcel.cool" = "http://127.0.0.1:9765";
-          "jellyfin.marcel.cool" = "http://127.0.0.1:8096";
-          "qbit.marcel.cool" = "http://127.0.0.1:8081";
-          "sonarr.marcel.cool" = "http://127.0.0.1:8989";
-          "radarr.marcel.cool" = "http://127.0.0.1:7878";
-          "lidarr.marcel.cool" = "http://127.0.0.1:8686";
-          "sabnzbd.marcel.cool" = "http://127.0.0.1:8080";
-          "prowlarr.marcel.cool" = "http://127.0.0.1:9696";
-          "home.marcel.cool" = "http://127.0.0.1:8082";
-          "bazarr.marcel.cool" = "http://127.0.0.1:6767";
-          "img.marcel.cool" = "http://127.0.0.1:2283";
-          "seerr.marcel.cool" = "http://127.0.0.1:5055";
-          "chaptarr.marcel.cool" = "http://127.0.0.1:8789";
-        };
+        ingress = lib.mapAttrs (name: service: "http://127.0.0.1:80") services;
       };
     };
   };
@@ -379,7 +545,7 @@
         listen_port = 50300;
       };
       web = {
-        port = 5030;
+        port = services.slskd.port;
         address = "0.0.0.0";
         authentication = {
           api_keys = {
@@ -404,7 +570,7 @@
     settings = {
       DataFolder = "/var/lib/navidrome";
       Address = "0.0.0.0";
-      Port = 4533;
+      Port = services.navidrome.port;
       MusicFolder = "/var/lib/slskd/music/share";
       DB = {
         Type = "postgres";
@@ -421,7 +587,18 @@
 
   networking = {
     hostName = "mlab";
+    defaultGateway = "192.168.1.1";
+
     interfaces = {
+      enp87s0 = {
+        useDHCP = true;
+        ipv4.addresses = [
+          {
+            address = "192.168.1.140";
+            prefixLength = 24;
+          }
+        ];
+      };
       enp2s0f0np0 = {
         useDHCP = true;
       };
@@ -429,32 +606,29 @@
         useDHCP = true;
       };
     };
+    dhcpcd = {
+      extraConfig = ''
+        slaac private
+        interface enp87s0
+        noipv4
+      '';
+    };
     nameservers = [
       "1.1.1.1"
       "8.8.8.8"
     ];
+    tempAddresses = "enabled";
     firewall = {
       enable = true;
-      allowedTCPPorts = [
-        80 # nginx catch-all
-        3000 # Openwebui
-        2283 # Immich
-        5030 # slskd
-        50300 # Soulseek
-        4533 # Navidrome
-        9765 # Soulbeet
-        8096 # Jellyfin HTTP
-        8081 # qBittorrent WebUI
-        8080 # SABnzbd
-        9117 # Jackett
-        8989 # Sonarr
-        7878 # Radarr
-        9696 # Prowlarr
-        6767 # Bazarr
-        8082 # Homepage Dashboard
-        5055 # Seerr
-        8789 # Chaptarr
-      ];
+      allowedTCPPorts =
+        [
+          80 # nginx catch-all
+          23951 # Qbitorrent
+          50300 # Soulseek
+          9117 # Jackett
+        ]
+        ++ builtins.map (v: v.port) (builtins.attrValues services);
+      allowedUDPPorts = [23951];
       allowedUDPPortRanges = [
         {
           from = 60000;
@@ -463,8 +637,8 @@
       ];
       extraCommands = ''
         # Allow traffic from Podman containers to the host
-        iptables -A INPUT -i podman+ -p tcp --dport 5030 -j ACCEPT
-        iptables -A INPUT -i podman+ -p tcp --dport 4533 -j ACCEPT
+        iptables -A INPUT -i podman+ -p tcp --dport ${toString services.slskd.port} -j ACCEPT
+        iptables -A INPUT -i podman+ -p tcp --dport ${toString services.navidrome.port} -j ACCEPT
       '';
       trustedInterfaces = ["podman0"];
     };
@@ -492,7 +666,7 @@
       };
       server = {
         host = "0.0.0.0";
-        port = 8080;
+        port = services.sabnzbd.port;
       };
     };
     allowConfigWrite = true;
@@ -527,8 +701,10 @@
   };
 
   environment.systemPackages = with pkgs; [
+    erdtree
     git
     vim
+    lsof
     tree
     git
     duf
@@ -546,16 +722,36 @@
     direnv
     sysz
     btop
+    ethtool
+    librespeed-cli
+    libreswan
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
         sudo podman exec -it soulbeet beet import /var/lib/slskd/music/downloads
       else
         echo "Importing: $1"
-        sudo podman exec -it soulbeet beet import "/var/lib/slskd/music/downloads/$1"
+        sudo podman exec -i soulbeet beet import -q -s -A "/var/lib/slskd/music/downloads/$1"
       fi
     '')
   ];
+
+  # Force 10Gbps and disable auto-negotiation on the X710 interface
+  systemd.services.ethtool-force-10g = {
+    description = "Force 10Gbps and disable autoneg on enp2s0f0np0";
+    after = [
+      "network-pre.target"
+      "sys-subsystem-net-devices-enp2s0f0np0.device"
+    ];
+    wants = ["sys-subsystem-net-devices-enp2s0f0np0.device"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+      ExecStart = "-${pkgs.ethtool}/bin/ethtool -s enp2s0f0np0 speed 10000 duplex full autoneg off";
+      RemainAfterExit = true;
+    };
+  };
 
   environment.sessionVariables.NVIM_PROFILE = "minimal";
 
@@ -577,6 +773,7 @@
       extraGroups = ["wheel"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe+ZUUCwet0+uaGYfr3hE4zNVASmQPWuoGpk5QAbKG4 nix-on-droid@localhost"
       ];
     };
     users.josep = {
@@ -586,6 +783,7 @@
     users.root = {
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe+ZUUCwet0+uaGYfr3hE4zNVASmQPWuoGpk5QAbKG4 nix-on-droid@localhost"
       ];
     };
 
@@ -661,7 +859,7 @@
   services.immich = {
     enable = true;
     host = "0.0.0.0";
-    port = 2283;
+    port = services.immich.port;
   };
 
   services.bazarr = {
@@ -705,6 +903,15 @@
       inherit (inputs) nvim;
       inherit pkgs;
     };
+    users.root = {
+      home = {
+        stateVersion = "26.05";
+        file.".config/tmux".source = "${inputs.dots}/.config/tmux";
+        file."scripts".source = "${inputs.dots}/scripts";
+        file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
+        file.".config/btop".source = "${inputs.dots}/.config/btop";
+      };
+    };
     users.dev = {lib, ...}: {
       home = {
         stateVersion = "26.05";
@@ -723,6 +930,7 @@
         file.".config/carapace".source = "${inputs.dots}/.config/carapace";
         file.".config/git".source = "${inputs.dots}/.config/git";
         file.".config/zoxide".source = "${inputs.dots}/.config/zoxide";
+        file.".config/btop".source = "${inputs.dots}/.config/btop";
       };
       programs.bash = {
         enable = true;
@@ -732,215 +940,6 @@
       };
       imports = [inputs.nvim.homeManagerModules.default];
     };
-  };
-
-  services.homepage-dashboard = {
-    enable = true;
-    listenPort = 8082;
-    environmentFile = config.sops.templates."homepage.env".path;
-
-    settings = {
-      title = "Mlab Dashboard";
-      color = "zinc";
-      theme = "dark";
-      useEqualHeights = true;
-      layout = {
-        "Media & Audio" = {
-          style = "row";
-          columns = 3;
-        };
-        "Arr" = {
-          style = "row";
-          columns = 3;
-        };
-        "Tools" = {
-          style = "row";
-          columns = 2;
-        };
-      };
-    };
-
-    widgets = [
-      {
-        resources = {
-          cpu = true;
-          memory = true;
-          disk = "/";
-        };
-      }
-    ];
-
-    services = [
-      {
-        "Media & Audio" = [
-          {
-            Navidrome = {
-              icon = "navidrome";
-              href = "https://music.marcel.cool";
-              description = "Music Streamer";
-              widget = {
-                type = "navidrome";
-                url = "http://127.0.0.1:4533";
-                user = "{{HOMEPAGE_VAR_WEB_USER}}";
-                salt = "{{HOMEPAGE_VAR_NAVIDROME_SALT}}";
-                token = "{{HOMEPAGE_VAR_NAVIDROME_TOKEN}}";
-              };
-            };
-          }
-          {
-            Jellyfin = {
-              icon = "jellyfin";
-              href = "https://jellyfin.marcel.cool";
-              description = "Video Server";
-              widget = {
-                type = "jellyfin";
-                url = "http://127.0.0.1:8096";
-                key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
-              };
-            };
-          }
-          {
-            Slskd = {
-              icon = "soulseek";
-              href = "https://slskd.marcel.cool";
-              description = "Soulseek Client";
-            };
-          }
-          {
-            Soulbeet = {
-              icon = "music";
-              href = "https://soulbeet.marcel.cool";
-              description = "Library Management";
-            };
-          }
-        ];
-      }
-      {
-        "Arr" = [
-          {
-            Sonarr = {
-              icon = "sonarr";
-              href = "https://sonarr.marcel.cool";
-              widget = {
-                type = "sonarr";
-                url = "http://127.0.0.1:8989";
-                key = "{{HOMEPAGE_VAR_SONARR_API}}";
-              };
-            };
-          }
-          {
-            Radarr = {
-              icon = "radarr";
-              href = "https://radarr.marcel.cool";
-              widget = {
-                type = "radarr";
-                url = "http://127.0.0.1:7878";
-                key = "{{HOMEPAGE_VAR_RADARR_API}}";
-              };
-            };
-          }
-          {
-            Lidarr = {
-              icon = "lidarr";
-              href = "https://lidarr.marcel.cool";
-              widget = {
-                type = "lidarr";
-                url = "http://127.0.0.1:8686";
-                key = "{{HOMEPAGE_VAR_LIDARR_API}}";
-              };
-            };
-          }
-          {
-            Prowlarr = {
-              icon = "prowlarr";
-              href = "https://prowlarr.marcel.cool";
-              widget = {
-                type = "prowlarr";
-                url = "http://127.0.0.1:9696";
-                key = "{{HOMEPAGE_VAR_PROWLARR_API}}";
-              };
-            };
-          }
-          {
-            qBittorrent = {
-              icon = "qbittorrent";
-              href = "https://qbit.marcel.cool";
-              widget = {
-                type = "qbittorrent";
-                url = "http://127.0.0.1:8081";
-                username = "{{HOMEPAGE_VAR_WEB_USER}}";
-                password = "{{HOMEPAGE_VAR_WEB_PASS}}";
-              };
-            };
-          }
-          {
-            SABnzbd = {
-              icon = "sabnzbd";
-              href = "https://sabnzbd.marcel.cool";
-              widget = {
-                type = "sabnzbd";
-                url = "http://127.0.0.1:8080";
-                key = "{{HOMEPAGE_VAR_SABNZBD_API}}";
-              };
-            };
-          }
-          {
-            Bazarr = {
-              icon = "bazarr";
-              href = "https://bazarr.marcel.cool";
-              widget = {
-                type = "bazarr";
-                url = "http://127.0.0.1:6767";
-                key = "{{HOMEPAGE_VAR_BAZARR_API}}";
-              };
-            };
-          }
-          {
-            "Immich" = {
-              icon = "immich";
-              href = "https://img.marcel.cool";
-              description = "Photo Management";
-              widget = {
-                type = "immich";
-                url = "http://127.0.0.1:2283";
-                key = "{{HOMEPAGE_VAR_IMMICH_API}}";
-                version = 2;
-              };
-            };
-          }
-        ];
-      }
-      {
-        "Tools" = [
-          {
-            "Open WebUI" = {
-              icon = "ollama";
-              href = "https://ai.marcel.cool";
-              description = "Local LLM Interface";
-            };
-          }
-        ];
-      }
-      # {
-      #   Seerr = {
-      #     icon = "seerr";
-      #     href = "https://seerr.marcel.cool";
-      #     description = "Media Requests";
-      #     widget = {
-      #       type = "seerr";
-      #       url = "http://127.0.0.1:5055";
-      #       key = "{{HOMEPAGE_VAR_SEERR_API}}";
-      #     };
-      #   };
-      # }
-      # {
-      #   Chaptarr = {
-      #     icon = "readarr";
-      #     href = "https://chaptarr.marcel.cool";
-      #     description = "Book Management";
-      #   };
-      # }
-    ];
   };
 
   system.stateVersion = "26.05";

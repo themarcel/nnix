@@ -14,6 +14,7 @@ in {
 
   home.packages = with pkgs; [
     audio-select
+    jellyfin-desktop
     blesh
     winetricks
     font-awesome
@@ -29,7 +30,6 @@ in {
     fira-sans
     font-awesome
     foot
-    mullvad-vpn
     jitsi
     gimp3
     grimblast

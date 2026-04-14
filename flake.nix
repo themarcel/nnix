@@ -8,6 +8,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     my-nixpkgs.url = "github:marcelarie/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs2405.url = "github:NixOS/nixpkgs/nixos-24.05";
     nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
     nvim.url = "github:marcelarie/nvim-lua";
@@ -49,7 +50,7 @@
     };
     zuban.url = "github:marcelarie/zuban";
     nix-on-droid = {
-      url = "github:nix-community/nix-on-droid/release-23.11";
+      url = "github:nix-community/nix-on-droid/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixGL = {
@@ -102,6 +103,7 @@
     nur,
     my-nixpkgs,
     disko,
+    nixpkgs2405,
     ...
   } @ inputs: let
     hyprlandInputs = inputs.hyprland;
@@ -142,7 +144,7 @@
         })
       ];
     };
-    pkgsAndroid = import nixpkgsStable {
+    pkgsAndroid = import nixpkgs2405 {
       system = androidSystem;
       config.allowUnfree = true;
     };
@@ -151,6 +153,13 @@
       config.allowUnfree = true;
     };
   in {
+    # custom android bootstrap zipball generator
+    packages.${system}.android-bootstrap = import ./hosts/android/bootstrap.nix {
+      inherit pkgs nix-on-droid system;
+      targetSystem = "aarch64-linux";
+      sshKeyPath = ./hosts/android/ssh.pub;
+      flakeSource = ./.;
+    };
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
         git
@@ -233,6 +242,7 @@
 
     nixOnDroidConfigurations.default = nix-on-droid.lib.nixOnDroidConfiguration {
       pkgs = pkgsAndroid;
+      extraSpecialArgs = {inherit inputs;};
       modules = [
         ./hosts/android/default.nix
       ];

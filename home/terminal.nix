@@ -79,7 +79,7 @@ in {
         };
       };
       "mlab-local" = {
-        hostname = "192.168.1.128";
+        hostname = "192.168.1.140";
         user = "root";
         identityFile = "~/.ssh/mlab_key";
         extraOptions = {
