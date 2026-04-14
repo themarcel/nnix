@@ -13,6 +13,7 @@ in {
   home.packages = with pkgs; [
     _1password-cli
     pnpm
+    attic-client
     # sway # for now we will install it via apt
     # python313Packages.python-lsp-server
     (config.lib.nixGL.wrap _1password-gui)
@@ -32,10 +33,34 @@ in {
     defaultSopsFormat = "yaml";
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
 
-    secrets.work_api_token = {};
+    secrets.attic_token = {};
   };
 
+  systemd.user.services.attic-watch-store = {
+    Unit = {
+      Description = "Attic Watch Store (Background Upload to mlab)";
+      After = ["network-online.target"];
+    };
+
+    Install = {
+      WantedBy = ["default.target"];
+    };
+
+    Service = {
+      ExecStart = pkgs.writeShellScript "attic-watch-wrapper" ''
+        TOKEN=$(${pkgs.coreutils}/bin/cat ${config.sops.secrets.attic_token.path})
+        ${pkgs.attic-client}/bin/attic login mlab https://cache.marcel.cool "$TOKEN"
+        exec ${pkgs.attic-client}/bin/attic watch-store mlab:system
+      '';
+      Restart = "always";
+      RestartSec = "10s";
+    };
+  };
+
+  nix.package = pkgs.nix;
   nix.settings = {
+    trusted-users = ["root" "mmanzanares"];
+    experimental-features = ["nix-command" "flakes"];
     substituters = [
       "https://cache.nixos.org"
       "https://cache.marcel.cool/system"
