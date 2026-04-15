@@ -28,11 +28,14 @@ in {
     procps
     bat
     rsync
+    gawk
   ];
 
   environment.sessionVariables = {
     EDITOR = "nvim";
     VISUAL = "nvim";
+    LANG = "en_US.UTF-8";
+    LC_ALL = "en_US.UTF-8";
     PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
     OPENSSL_DIR = "${pkgs.openssl.out}";
     OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
