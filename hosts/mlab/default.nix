@@ -618,10 +618,52 @@
     max-jobs = "auto";
   };
 
+  security.sudo.extraRules = [
+    {
+      groups = ["dev-team"];
+      commands = [
+        {
+          command = "/run/current-system/sw/bin/systemctl restart atticd.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl -u atticd.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart grafana.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl -u grafana.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart prometheus.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl -u prometheus.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl restart uptime-kuma.service";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl -u uptime-kuma.service";
+          options = ["NOPASSWD"];
+        }
+      ];
+    }
+  ];
+
   users = {
+    groups.dev-team = {};
+
     users.dev = {
       isNormalUser = true;
-      extraGroups = ["wheel"];
+      extraGroups = ["dev-team"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"

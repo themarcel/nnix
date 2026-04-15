@@ -39,6 +39,11 @@ in {
     OPENSSL_INCLUDE_DIR = "${pkgs.openssl.dev}/include";
   };
 
+  nix.extraOptions = ''
+    substituters = https://cache.nixos.org https://cache.marcel.cool/system
+    trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= system:Ve/kZ+DnW135w7Z44yIxH0kOgIXoK6akWv282O2xmWM=
+  '';
+
   home-manager = {
     backupFileExtension = "hm-bak";
     useGlobalPkgs = true;
