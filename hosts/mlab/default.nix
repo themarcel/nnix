@@ -624,7 +624,7 @@
       extraGroups = ["wheel"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe+ZUUCwet0+uaGYfr3hE4zNVASmQPWuoGpk5QAbKG4 nix-on-droid@localhost"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"
       ];
     };
     users.josep = {
@@ -634,7 +634,6 @@
     users.root = {
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHe+ZUUCwet0+uaGYfr3hE4zNVASmQPWuoGpk5QAbKG4 nix-on-droid@localhost"
       ];
     };
 

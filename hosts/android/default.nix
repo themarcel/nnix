@@ -45,6 +45,7 @@ in {
     carapace
     procps
     bat
+    rsync
   ];
 
   environment.sessionVariables = {
@@ -90,7 +91,7 @@ in {
         matchBlocks = {
           "mlab" = {
             hostname = "ssh.marcel.cool";
-            user = "root";
+            user = "dev";
             identityFile = "~/.ssh/id_mlab";
             extraOptions = {
               IdentitiesOnly = "yes";
