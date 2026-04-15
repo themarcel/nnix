@@ -46,6 +46,8 @@ in {
     procps
     bat
     rsync
+    xargs
+    sed
   ];
 
   environment.sessionVariables = {

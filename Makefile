@@ -12,5 +12,4 @@ mlab:
 	fi
 
 droid:
-	rsync -avz --delete --exclude='.git' ./ droid:~/.config/nix-on-droid/
 	ssh droid "nix-on-droid switch --flake ~/.config/nix-on-droid#default"
