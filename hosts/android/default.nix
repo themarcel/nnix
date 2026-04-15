@@ -12,24 +12,6 @@ in {
   # critical: prevents android from killing ssh when the screen is off
   android-integration.termux-wake-lock.enable = true;
 
-  # nix = {
-  #   distributedBuilds = true;
-  #   buildMachines = [
-  #     {
-  #       hostName = "nixos.local";
-  #       sshUser = "marcel";
-  #       systems = ["aarch64-linux" "x86_64-linux"];
-  #       maxJobs = 4;
-  #       speedFactor = 2;
-  #       supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
-  #       sshKey = "/data/data/com.termux.nix/files/home/.ssh/id_mlab";
-  #     }
-  #   ];
-  #   extraOptions = ''
-  #     builders-use-substitutes = true
-  #   '';
-  # };
-
   environment.packages = with pkgs; [
     openssh
     git
@@ -46,8 +28,6 @@ in {
     procps
     bat
     rsync
-    xargs
-    sed
   ];
 
   environment.sessionVariables = {
@@ -105,15 +85,11 @@ in {
         enable = true;
         initExtra = ''
           source ${inputs.dots}/.bashrc
-
-          # Start SSHD with absolute paths to avoid 'Connection reset'
-          if ! pgrep -x "sshd" >/dev/null; then
-            # Ensure keys exist
+          if ! pgrep -f "sshd -f" >/dev/null; then
             if [ ! -f /data/data/com.termux.nix/files/home/.ssh/ssh_host_ed25519_key ]; then
               ${pkgs.openssh}/bin/ssh-keygen -t ed25519 -f /data/data/com.termux.nix/files/home/.ssh/ssh_host_ed25519_key -N "" -q
             fi
-
-            # Start daemon using the full path to the config
+            # start daemon using the full path to the config
             /data/data/com.termux.nix/files/home/.nix-profile/bin/sshd -f /data/data/com.termux.nix/files/home/.ssh/sshd_config
           fi
         '';
