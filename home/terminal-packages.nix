@@ -125,7 +125,7 @@ with pkgs; [
   optipng
   pamixer
   parted
-  pass
+  pass-wayland
   passff-host
   patchutils
   pfetch

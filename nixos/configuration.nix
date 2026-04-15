@@ -312,7 +312,7 @@
     glib
     gcc
     gnupg
-    pass
+    pass-wayland
     openssl
     openvpn
     sbc
