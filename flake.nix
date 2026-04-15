@@ -2,53 +2,31 @@
   description = "NixOS and Home Manager configuration";
 
   inputs = {
-    mq.url = "github:marcelarie/mq";
+    crane.url = "github:ipetkov/crane";
+    mq.url = "github:themarcel/mq";
     musnix.url = "github:musnix/musnix";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    my-nixpkgs.url = "github:marcelarie/nixpkgs";
+    my-nixpkgs.url = "github:themarcel/nixpkgs";
     nixpkgsStable.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs2405.url = "github:NixOS/nixpkgs/nixos-24.05";
-    nu-alias-converter.url = "github:marcelarie/nu-alias-converter";
+    nu-alias-converter.url = "github:themarcel/nu-alias-converter";
     nur.url = "github:nix-community/NUR";
-    nvim.url = "github:marcelarie/nvim-lua";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    nvim.url = "github:themarcel/nvim-lua";
     dots = {
-      url = "github:marcelarie/dots";
+      url = "github:themarcel/dots";
       flake = false;
     };
     xelabash = {
-      url = "github:marcelarie/xelabash";
+      url = "github:themarcel/xelabash";
       flake = false;
     };
-    lsv = {
-      url = "path:./packages/lsv";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    audio-select = {
-      url = "path:./packages/audio-select";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    rff = {
-      url = "path:./packages/rff";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    pulseaudio-next-output = {
-      url = "path:./packages/pulseaudio-next-output";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    git-commit-search = {
-      url = "path:./packages/git-commit-search";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    haralyzer = {
-      url = "path:./packages/haralyzer";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     foot-fork = {
-      url = "git+https://codeberg.org/marcelarie/foot?ref=regex-scrollback-search";
+      url = "git+https://codeberg.org/themarcel/foot?ref=regex-scrollback-search";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    zuban.url = "github:marcelarie/zuban";
+    zuban.url = "github:themarcel/zuban";
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid/master";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,7 +44,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     tmex = {
-      url = "github:marcelarie/tmex";
+      url = "github:themarcel/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland = {
@@ -94,16 +72,12 @@
     tmex,
     neovim-nightly-overlay,
     nu-alias-converter,
-    lsv,
-    audio-select,
-    rff,
-    pulseaudio-next-output,
-    git-commit-search,
-    haralyzer,
     nur,
     my-nixpkgs,
     disko,
     nixpkgs2405,
+    crane,
+    rust-overlay,
     ...
   } @ inputs: let
     hyprlandInputs = inputs.hyprland;
@@ -113,6 +87,7 @@
     username = "marcel";
     hostname = "nixos";
     tmexPkg = tmex.packages.${system}.tmex;
+    rust = import ./packages/rust/common.nix {inherit nixpkgs crane rust-overlay;};
     pkgs = import nixpkgs {
       inherit system;
       config = {
@@ -128,14 +103,14 @@
         (import ./overlays/neovim-nightly.nix {inherit inputs;})
         (final: prev: {tmex = tmexPkg;})
         (final: prev: {nuit = nu-alias-converter.packages.${system}.default;})
-        (final: prev: {lsv = inputs.lsv.packages.${system}.default;})
-        (final: prev: {"audio-select" = inputs.audio-select.packages.${system}.default;})
-        (final: prev: {rff = inputs.rff.packages.${system}.default;})
+        (final: prev: {lsv = import ./packages/lsv/package.nix {inherit (rust) craneLib pkgs;};})
+        (final: prev: {"audio-select" = import ./packages/audio-select/package.nix {inherit (rust) craneLib pkgs;};})
+        (final: prev: {rff = import ./packages/rff/package.nix {inherit (rust) craneLib pkgs;};})
         (final: prev: {
-          "pulseaudio-next-output" = inputs.pulseaudio-next-output.packages.${system}.default;
+          "pulseaudio-next-output" = import ./packages/pulseaudio-next-output/package.nix {inherit (rust) craneLib pkgs;};
         })
-        (final: prev: {"git-commit-search" = inputs.git-commit-search.packages.${system}.default;})
-        (final: prev: {haralyzer = inputs.haralyzer.packages.${system}.default;})
+        (final: prev: {"git-commit-search" = import ./packages/git-commit-search/package.nix {inherit (rust) craneLib pkgs;};})
+        (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
         # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
