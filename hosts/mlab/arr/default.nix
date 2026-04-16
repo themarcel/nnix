@@ -1,7 +1,7 @@
 {...}: {
   imports = [
     ./buildarr.nix
-    # ./sonarr.nix
+    ./lidarr.nix
     # ./radarr.nix
     # # Add other arr files here
   ];

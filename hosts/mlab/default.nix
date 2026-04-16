@@ -14,6 +14,7 @@
     ./graphana.nix
     ./homepage.nix
     ./seafile.nix
+    ./searxng.nix
     ./shoko.nix
     ./attic.nix
   ];
@@ -47,7 +48,6 @@
       "josep_password" = {
         neededForUsers = true;
       };
-      "lidarr_api" = {};
       "navidrome_salt" = {};
       "navidrome_token" = {};
       "prowlarr_api" = {};
@@ -386,11 +386,6 @@
     ];
   };
 
-  services.lidarr = {
-    enable = true;
-    openFirewall = true;
-  };
-
   services.slskd = {
     enable = true;
     openFirewall = true;
@@ -491,7 +486,6 @@
           443 # Nginx HTTPS
           23951 # Qbitorrent
           50300 # Soulseek
-          9117 # Jackett
         ]
         ++ builtins.map (v: v.port) (builtins.attrValues services);
       allowedUDPPorts = [23951];
@@ -724,9 +718,6 @@
     users.radarr = {
       extraGroups = ["media"];
     };
-    users.lidarr = {
-      extraGroups = ["media"];
-    };
     users.chaptarr = {
       isSystemUser = true;
       group = "chaptarr";
@@ -764,10 +755,6 @@
       UMask = lib.mkForce "0002";
     };
     radarr.serviceConfig = {
-      ReadWritePaths = ["/var/lib/media"];
-      UMask = lib.mkForce "0002";
-    };
-    lidarr.serviceConfig = {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };

@@ -1,6 +1,15 @@
 format:
 	alejandra .
 
+nixos:
+	sudo nixos-rebuild switch --flake .#nixos
+
+nixos-nixbuild:
+	sudo nixos-rebuild switch --flake .#nixos \
+		--option builders "@/tmp/nixbuild-machines" \
+		--option builders-use-substitutes true \
+		--option max-jobs 0
+
 vps:
 	nixos-rebuild switch  --flake .#vps --target-host root@vps
 
@@ -10,6 +19,12 @@ mlab:
 	else \
 		nixos-rebuild switch  --flake .#mlab --target-host root@mlab; \
 	fi
+
+nixos-nixbuild-mlab:
+	sudo nixos-rebuild switch --flake .#mlab --target-host root@mlab-local; \
+		--option builders "@/tmp/nixbuild-machines" \
+		--option builders-use-substitutes true \
+		--option max-jobs 0
 
 # a bit complex but its the only way I (claude) found so the phone does not do the build
 droid:

@@ -19,6 +19,8 @@
     };
   };
 
+  services.blueman.enable = true;
+
   nix.settings = {
     # cores = 0; # Use all cores
 
@@ -226,6 +228,14 @@
     pulse.enable = true;
     wireplumber = {
       enable = true;
+      # extraConfig = {
+      #   "bluetooth" = {
+      #     "monitor.bluez.properties" = {
+      #       # this allows high-fidelity audio but explicitly omits "ldac"
+      #       "bluez5.codecs" = ["sbc" "sbc_xq" "aac" "aptx" "aptx_hd"];
+      #     };
+      #   };
+      # };
     };
   };
 
@@ -377,7 +387,7 @@
   systemd.services.attic-watch-store = {
     description = "Attic Watch Store";
     wantedBy = ["multi-user.target"];
-    after = ["network-online.target"];
+    after = [];
 
     serviceConfig = {
       User = "root";

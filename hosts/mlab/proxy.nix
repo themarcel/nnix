@@ -105,6 +105,10 @@
       port = 9090;
       href = "http://127.0.0.1:9090";
     };
+    searxng = {
+      port = 8084;
+      href = "https://search.marcel.cool";
+    };
   };
 
   mkProxyHost = name: service: {

@@ -205,5 +205,5 @@ with pkgs; [
   zk
   zoxide
   zsh
-  zuban
+  # zuban
 ]
