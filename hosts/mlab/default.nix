@@ -67,6 +67,11 @@
       "grafana_secret_key" = {
         owner = "grafana";
       };
+      "github_ssh_key" = {
+        sopsFile = ../../secrets/github.yaml;
+        owner = "dev";
+        mode = "0600";
+      };
     };
 
     templates."authelia-env" = {
@@ -870,6 +875,15 @@
       };
     };
     users.dev = {lib, ...}: {
+      programs.ssh = {
+        enable = true;
+        matchBlocks."github.com" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = "/run/secrets/github_ssh_key";
+          extraOptions.IdentitiesOnly = "yes";
+        };
+      };
       home = {
         stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";

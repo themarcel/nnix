@@ -362,6 +362,12 @@
         owner = username;
       };
       "attic_token" = {};
+      "github_ssh_key" = {
+        sopsFile = ../secrets/github.yaml;
+        owner = username;
+        mode = "0600";
+        path = "/home/${username}/.ssh/github_ed25519";
+      };
     };
 
     templates."slskd.env" = {
