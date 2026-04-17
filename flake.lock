@@ -53,11 +53,11 @@
     "dots": {
       "flake": false,
       "locked": {
-        "lastModified": 1776339444,
-        "narHash": "sha256-71PpVvo/jo2QEJ0MlBlkHWL9bW+PKw/bAL7KQt8pHDI=",
+        "lastModified": 1776435491,
+        "narHash": "sha256-pfPW6RY/C2ntjL7WT+6htCxoh6ewGxVVhhtX/jFuHZ0=",
         "owner": "themarcel",
         "repo": "dots",
-        "rev": "f7936a6dfc0364705e719e4537e7812adad70229",
+        "rev": "b5b22f80d596b3ab634e9ce5cb1dbbdf74e5a5dc",
         "type": "github"
       },
       "original": {

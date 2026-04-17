@@ -597,6 +597,9 @@
     librespeed-cli
     libreswan
     ffmpeg_7
+    atuin
+    gnupg
+    carapace
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
@@ -877,6 +880,7 @@
     users.dev = {lib, ...}: {
       programs.ssh = {
         enable = true;
+        enableDefaultConfig = false;
         matchBlocks."github.com" = {
           hostname = "github.com";
           user = "git";
@@ -888,10 +892,9 @@
         stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";
         packages = with pkgs; [
-          atuin
-          gnupg
           pass
-          carapace
+          pi-coding-agent
+          opencode
         ];
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
         file."clones/forks/xelabash".source = inputs.xelabash;
