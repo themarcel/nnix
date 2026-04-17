@@ -17,6 +17,7 @@
     ./searxng.nix
     ./shoko.nix
     ./attic.nix
+    ./paperless.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -258,10 +259,14 @@
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = ["navidrome"];
+    ensureDatabases = ["navidrome" "paperless"];
     ensureUsers = [
       {
         name = "navidrome";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "paperless";
         ensureDBOwnership = true;
       }
     ];
@@ -657,7 +662,7 @@
 
     users.dev = {
       isNormalUser = true;
-      extraGroups = ["dev-team"];
+      extraGroups = ["dev-team" "systemd-journal"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"

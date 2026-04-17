@@ -2,8 +2,7 @@
   config,
   services,
   ...
-}:
-{
+}: {
   sops.templates."homepage.env" = {
     content = ''
       HOMEPAGE_ALLOWED_HOSTS="home.marcel.cool,127.0.0.1,localhost"
@@ -20,12 +19,13 @@
       HOMEPAGE_VAR_BAZARR_API='${config.sops.placeholder.bazarr_api}'
       HOMEPAGE_VAR_IMMICH_API='${config.sops.placeholder.immich_api}'
       HOMEPAGE_VAR_SEERR_API='${config.sops.placeholder.seerr_api}'
+      HOMEPAGE_VAR_PAPERLESS_API='${config.sops.placeholder.paperless_api}'
     '';
   };
   services.homepage-dashboard = {
     enable = true;
     listenPort = services.home.port;
-    environmentFiles = [ config.sops.templates."homepage.env".path ];
+    environmentFiles = [config.sops.templates."homepage.env".path];
 
     settings = {
       title = "Mlab Dashboard";
@@ -53,6 +53,13 @@
     };
 
     widgets = [
+      {
+        search = {
+          provider = "custom";
+          url = "https://search.marcel.cool/search?q=";
+          target = "_blank";
+        };
+      }
       {
         resources = {
           cpu = true;
@@ -256,10 +263,27 @@
             };
           }
           {
+            Paperless = {
+              icon = "paperless-ngx";
+              href = services.paperless.href;
+              description = "Document Management";
+              widget = {
+                type = "paperlessngx";
+                url = "http://127.0.0.1:${toString services.paperless.port}";
+                key = "{{HOMEPAGE_VAR_PAPERLESS_API}}";
+              };
+            };
+          }
+          {
             Status = {
               icon = "uptime-kuma";
               href = services.status.href;
               description = "Uptime Kuma";
+              widget = {
+                type = "uptimekuma";
+                url = "http://127.0.0.1:${toString services.status.port}";
+                slug = "mlab";
+              };
             };
           }
           {
