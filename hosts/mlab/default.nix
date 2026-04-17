@@ -626,15 +626,7 @@
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u atticd.service";
-          options = ["NOPASSWD"];
-        }
-        {
           command = "/run/current-system/sw/bin/systemctl restart grafana.service";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/journalctl -u grafana.service";
           options = ["NOPASSWD"];
         }
         {
@@ -642,15 +634,31 @@
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u prometheus.service";
-          options = ["NOPASSWD"];
-        }
-        {
           command = "/run/current-system/sw/bin/systemctl restart uptime-kuma.service";
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u uptime-kuma.service";
+          command = "/run/current-system/sw/bin/systemctl --system show *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system status *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system cat *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system list-units *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system list-unit-files *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl *";
           options = ["NOPASSWD"];
         }
       ];

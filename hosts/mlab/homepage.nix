@@ -77,11 +77,11 @@
               icon = "jellyfin";
               href = services.jellyfin.href;
               description = "Movies & TV";
-              widget = {
-                type = "jellyfin";
-                url = "http://127.0.0.1:${toString services.jellyfin.port}";
-                key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
-              };
+              # widget = {
+              #   type = "jellyfin";
+              #   url = "http://127.0.0.1:${toString services.jellyfin.port}";
+              #   key = "{{HOMEPAGE_VAR_JELLYFIN_API}}";
+              # };
             };
           }
           {
@@ -277,7 +277,7 @@
           {
             Status = {
               icon = "uptime-kuma";
-              href = services.status.href;
+              href = "${services.status.href}/status/mlab";
               description = "Uptime Kuma";
               widget = {
                 type = "uptimekuma";
