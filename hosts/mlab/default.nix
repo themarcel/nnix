@@ -17,6 +17,7 @@
     ./searxng.nix
     ./shoko.nix
     ./attic.nix
+    ./miniflux.nix
     ./paperless.nix
   ];
 

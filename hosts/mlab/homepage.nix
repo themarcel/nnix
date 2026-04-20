@@ -20,6 +20,7 @@
       HOMEPAGE_VAR_IMMICH_API='${config.sops.placeholder.immich_api}'
       HOMEPAGE_VAR_SEERR_API='${config.sops.placeholder.seerr_api}'
       HOMEPAGE_VAR_PAPERLESS_API='${config.sops.placeholder.paperless_api}'
+      HOMEPAGE_VAR_MINIFLUX_API='${config.sops.placeholder.miniflux_api}'
     '';
   };
   services.homepage-dashboard = {
@@ -291,6 +292,18 @@
               icon = "grafana";
               href = services.grafana.href;
               description = "Server Metrics";
+            };
+          }
+          {
+            Miniflux = {
+              icon = "miniflux";
+              href = services.miniflux.href;
+              description = "Feed server and reader";
+              widget = {
+                type = "miniflux";
+                url = "http://127.0.0.1:${toString services.miniflux.port}";
+                key = "{{HOMEPAGE_VAR_MINIFLUX_API}}";
+              };
             };
           }
         ];

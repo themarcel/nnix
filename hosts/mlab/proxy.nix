@@ -49,6 +49,10 @@
       port = 8686;
       href = "https://lidarr.marcel.cool";
     };
+    miniflux = {
+      port = 8085;
+      href = "https://rss.marcel.cool";
+    };
     navidrome = {
       port = 4533;
       href = "https://music.marcel.cool";

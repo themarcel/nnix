@@ -21,6 +21,8 @@
 
   services.blueman.enable = true;
 
+  programs.nix-ld.enable = true;
+
   nix.settings = {
     # cores = 0; # Use all cores
 
