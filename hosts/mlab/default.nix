@@ -19,6 +19,9 @@
     ./attic.nix
     ./miniflux.nix
     ./paperless.nix
+    ./invidious.nix
+    ./piped.nix
+    ./hyperpipe.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -46,6 +49,7 @@
         group = "ddclient";
       };
       "immich_api" = {};
+      "invidious_companion_key" = {};
       "jellyfin_api" = {};
       "josep_password" = {
         neededForUsers = true;
@@ -100,6 +104,20 @@
               - admins
       '';
       owner = "authelia-main";
+    };
+
+    templates."invidious-extra.json" = {
+      content = ''
+        {"invidious_companion_key":"${config.sops.placeholder.invidious_companion_key}"}
+      '';
+      mode = "0444";
+    };
+
+    templates."invidious-companion.env" = {
+      content = ''
+        SERVER_SECRET_KEY=${config.sops.placeholder.invidious_companion_key}
+      '';
+      mode = "0444";
     };
 
     templates."qBittorrent.conf" = {
@@ -799,6 +817,8 @@
     settings = {
       theme = "dark";
       server.address = "tcp://0.0.0.0:${toString services.auth.port}";
+      server.buffers.read = 16384;
+      server.buffers.write = 16384;
 
       session = {
         name = "authelia_session";

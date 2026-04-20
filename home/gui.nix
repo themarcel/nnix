@@ -14,6 +14,7 @@ in {
 
   home.packages = with pkgs; [
     audio-select
+    grayjay
     jellyfin-desktop
     blesh
     # winetricks  # disabled: openal-soft/pipewire linking failure in current nixpkgs
