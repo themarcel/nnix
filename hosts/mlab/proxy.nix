@@ -121,7 +121,6 @@
     youtube = {
       port = 9800;
       href = "https://yt.marcel.cool";
-      protected = true;
     };
     ytmusic = {
       port = 9801;
