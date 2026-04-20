@@ -15,6 +15,7 @@ in {
   home.packages = with pkgs; [
     audio-select
     jellyfin-desktop
+    obsidian
     blesh
     winetricks
     font-awesome
