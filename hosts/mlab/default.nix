@@ -14,8 +14,11 @@
     ./graphana.nix
     ./homepage.nix
     ./seafile.nix
+    ./searxng.nix
     ./shoko.nix
     ./attic.nix
+    ./miniflux.nix
+    ./paperless.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -47,7 +50,6 @@
       "josep_password" = {
         neededForUsers = true;
       };
-      "lidarr_api" = {};
       "navidrome_salt" = {};
       "navidrome_token" = {};
       "prowlarr_api" = {};
@@ -65,6 +67,11 @@
       "web_user" = {};
       "grafana_secret_key" = {
         owner = "grafana";
+      };
+      "github_ssh_key" = {
+        sopsFile = ../../secrets/github.yaml;
+        owner = "dev";
+        mode = "0600";
       };
     };
 
@@ -258,10 +265,14 @@
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = ["navidrome"];
+    ensureDatabases = ["navidrome" "paperless"];
     ensureUsers = [
       {
         name = "navidrome";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "paperless";
         ensureDBOwnership = true;
       }
     ];
@@ -386,11 +397,6 @@
     ];
   };
 
-  services.lidarr = {
-    enable = true;
-    openFirewall = true;
-  };
-
   services.slskd = {
     enable = true;
     openFirewall = true;
@@ -491,7 +497,6 @@
           443 # Nginx HTTPS
           23951 # Qbitorrent
           50300 # Soulseek
-          9117 # Jackett
         ]
         ++ builtins.map (v: v.port) (builtins.attrValues services);
       allowedUDPPorts = [23951];
@@ -593,6 +598,9 @@
     librespeed-cli
     libreswan
     ffmpeg_7
+    atuin
+    gnupg
+    carapace
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
@@ -627,15 +635,7 @@
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u atticd.service";
-          options = ["NOPASSWD"];
-        }
-        {
           command = "/run/current-system/sw/bin/systemctl restart grafana.service";
-          options = ["NOPASSWD"];
-        }
-        {
-          command = "/run/current-system/sw/bin/journalctl -u grafana.service";
           options = ["NOPASSWD"];
         }
         {
@@ -643,15 +643,31 @@
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u prometheus.service";
-          options = ["NOPASSWD"];
-        }
-        {
           command = "/run/current-system/sw/bin/systemctl restart uptime-kuma.service";
           options = ["NOPASSWD"];
         }
         {
-          command = "/run/current-system/sw/bin/journalctl -u uptime-kuma.service";
+          command = "/run/current-system/sw/bin/systemctl --system show *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system status *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system cat *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system list-units *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/systemctl --system list-unit-files *";
+          options = ["NOPASSWD"];
+        }
+        {
+          command = "/run/current-system/sw/bin/journalctl *";
           options = ["NOPASSWD"];
         }
       ];
@@ -663,7 +679,7 @@
 
     users.dev = {
       isNormalUser = true;
-      extraGroups = ["dev-team"];
+      extraGroups = ["dev-team" "systemd-journal"];
       openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"
@@ -724,9 +740,6 @@
     users.radarr = {
       extraGroups = ["media"];
     };
-    users.lidarr = {
-      extraGroups = ["media"];
-    };
     users.chaptarr = {
       isSystemUser = true;
       group = "chaptarr";
@@ -764,10 +777,6 @@
       UMask = lib.mkForce "0002";
     };
     radarr.serviceConfig = {
-      ReadWritePaths = ["/var/lib/media"];
-      UMask = lib.mkForce "0002";
-    };
-    lidarr.serviceConfig = {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
     };
@@ -870,14 +879,23 @@
       };
     };
     users.dev = {lib, ...}: {
+      programs.ssh = {
+        enable = true;
+        enableDefaultConfig = false;
+        matchBlocks."github.com" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = "/run/secrets/github_ssh_key";
+          extraOptions.IdentitiesOnly = "yes";
+        };
+      };
       home = {
         stateVersion = "26.05";
         sessionVariables.NVIM_PROFILE = "minimal";
         packages = with pkgs; [
-          atuin
-          gnupg
           pass
-          carapace
+          pi-coding-agent
+          opencode
         ];
         file.".bash_aliases".source = "${inputs.dots}/.bash_aliases";
         file."clones/forks/xelabash".source = inputs.xelabash;

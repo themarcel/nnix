@@ -46,6 +46,14 @@ in {
     enable = true;
     enableDefaultConfig = false;
     matchBlocks = {
+      "github.com" = {
+        hostname = "github.com";
+        user = "git";
+        identityFile = "~/.ssh/github_ed25519";
+        extraOptions = {
+          IdentitiesOnly = "yes";
+        };
+      };
       "bitbucket.org" = {
         hostname = "bitbucket.org";
         user = "git";

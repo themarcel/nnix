@@ -22,3 +22,11 @@ creation_rules:
       - age:
           - *admin
           - *mlab
+
+  - path_regex: secrets/github\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *nixos
+          - *mlab
+          - *work

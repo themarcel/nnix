@@ -130,7 +130,7 @@ with pkgs; [
   patchutils
   pfetch
   pi-coding-agent
-  pi-undo-redo
+  # pi-undo-redo
   playerctl
   poppler-utils
   prefetch-npm-deps
@@ -206,5 +206,5 @@ with pkgs; [
   zk
   zoxide
   zsh
-  zuban
+  # zuban
 ]

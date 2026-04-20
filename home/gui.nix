@@ -17,11 +17,10 @@ in {
     jellyfin-desktop
     obsidian
     blesh
-    winetricks
+    # winetricks  # disabled: openal-soft/pipewire linking failure in current nixpkgs
     font-awesome
     abiword
     kdePackages.ark
-    blueman
     brightnessctl
     cliphist
     dejavu_fonts
@@ -89,7 +88,7 @@ in {
     guvcview
     thunderbird
     wlprop
-    wine
+    # wine  # disabled: openal-soft/pipewire linking failure in current nixpkgs
     vvvvvv
     pinentry-all
     mullvad-browser

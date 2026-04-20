@@ -14,6 +14,7 @@ in {
     _1password-cli
     pnpm
     attic-client
+    blueman
     # sway # for now we will install it via apt
     # python313Packages.python-lsp-server
     (config.lib.nixGL.wrap _1password-gui)
@@ -35,6 +36,10 @@ in {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
 
     secrets.attic_token = {};
+    secrets.github_ssh_key = {
+      sopsFile = ../../secrets/github.yaml;
+      path = "${config.home.homeDirectory}/.ssh/github_ed25519";
+    };
   };
 
   systemd.user.services.attic-watch-store = {

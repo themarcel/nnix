@@ -47,20 +47,20 @@
       url = "github:themarcel/tmex";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    hyprland-plugins = {
-      url = "github:hyprwm/hyprland-plugins";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.hyprland.follows = "hyprland";
-    };
-    pi-undo-redo.url = "path:/home/mmanzanares/clones/forks/pi-undo-redo";
+    # pi-undo-redo.url = "path:/home/mmanzanares/clones/forks/pi-undo-redo";
+    # hyprland = {
+    #   url = "github:hyprwm/Hyprland";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+    # hyprland-plugins = {
+    #   url = "github:hyprwm/hyprland-plugins";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    #   inputs.hyprland.follows = "hyprland";
+    # };
   };
 
   outputs = {
@@ -81,8 +81,8 @@
     rust-overlay,
     ...
   } @ inputs: let
-    hyprlandInputs = inputs.hyprland;
-    hyprlandPlugins = inputs."hyprland-plugins";
+    # hyprlandInputs = inputs.hyprland;
+    # hyprlandPlugins = inputs."hyprland-plugins";
     system = "x86_64-linux";
     androidSystem = "aarch64-linux";
     username = "marcel";
@@ -114,11 +114,17 @@
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
         # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
-        (final: prev: {pi-undo-redo = inputs.pi-undo-redo.packages.${pkgs.system}.default;})
+        # (final: prev: {pi-undo-redo = inputs.pi-undo-redo.packages.${pkgs.system}.default;})
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
         })
+        #  force audio & bluetooth to use the stable channel
+        # (final: prev: {
+        #   pipewire = pkgsStable.pipewire;
+        #   wireplumber = pkgsStable.wireplumber;
+        #   bluez = pkgsStable.bluez;
+        # })
       ];
     };
     pkgsAndroid = import nixpkgs2405 {

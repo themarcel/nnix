@@ -8,7 +8,6 @@
 }: {
   sops.templates."buildarr.yml" = {
     content = ''
-      # Buildarr settings
       buildarr:
         watch_config: true
         update_days:
@@ -22,7 +21,6 @@
         update_times:
           - "03:00"
 
-      # Sonarr Configuration
       sonarr:
         hostname: "127.0.0.1"
         port: 8989
@@ -46,7 +44,6 @@
                 api_key: "${config.sops.placeholder.sabnzbd_api}"
                 category: "tv"
 
-      # Radarr Configuration
       radarr:
         hostname: "127.0.0.1"
         port: 7878
@@ -70,6 +67,28 @@
                 port: 8080
                 api_key: "${config.sops.placeholder.sabnzbd_api}"
                 category: "movies"
+
+      prowlarr:
+        hostname: "127.0.0.1"
+        port: 9696
+        protocol: "http"
+        api_key: "${config.sops.placeholder.prowlarr_api}"
+        settings:
+          apps:
+            applications:
+              definitions:
+                Lidarr:
+                  type: "lidarr"
+                  prowlarr_url: "http://127.0.0.1:9696"
+                  base_url: "http://127.0.0.1:8686"
+                  api_key: "${config.sops.placeholder.lidarr_api}"
+                  sync_level: "add-and-remove-only"
+                  sync_categories:
+                    - "Audio/MP3"
+                    - "Audio/Audiobook"
+                    - "Audio/Lossless"
+                    - "Audio/Other"
+                    - "Audio/Foreign"
     '';
   };
 

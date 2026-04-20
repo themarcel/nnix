@@ -49,6 +49,10 @@
       port = 8686;
       href = "https://lidarr.marcel.cool";
     };
+    miniflux = {
+      port = 8085;
+      href = "https://rss.marcel.cool";
+    };
     navidrome = {
       port = 4533;
       href = "https://music.marcel.cool";
@@ -68,6 +72,10 @@
     radarr = {
       port = 7878;
       href = "https://radarr.marcel.cool";
+    };
+    paperless = {
+      port = 28981;
+      href = "https://paperless.marcel.cool";
     };
     sabnzbd = {
       port = 8080;
@@ -105,6 +113,11 @@
       port = 9090;
       href = "http://127.0.0.1:9090";
     };
+    searxng = {
+      port = 8084;
+      href = "https://search.marcel.cool";
+      protected = true;
+    };
   };
 
   mkProxyHost = name: service: {
@@ -127,12 +140,36 @@
         proxy_send_timeout 15m;
         proxy_read_timeout 15m;
         error_page 502 503 504 = @maintenance;
+
+        ${lib.optionalString (service.protected or false) ''
+          auth_request /internal/authelia/authz;
+          error_page 401 = @authelia_login;
+        ''}
       '';
     };
     extraConfig = ''
       location @maintenance {
         return 307 https://maintenance.marcel.cool?from=${lib.removePrefix "https://" service.href};
       }
+
+      ${lib.optionalString (service.protected or false) ''
+        location /internal/authelia/authz {
+          internal;
+          proxy_pass http://127.0.0.1:${toString services.auth.port}/api/verify;
+          proxy_pass_request_body off;
+          proxy_set_header Content-Length "";
+          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+          proxy_set_header X-Forwarded-Method $request_method;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_set_header X-Forwarded-Host $http_host;
+          proxy_set_header X-Forwarded-URI $request_uri;
+          proxy_set_header X-Forwarded-For $remote_addr;
+        }
+
+        location @authelia_login {
+          return 302 https://auth.marcel.cool/?rm=$request_method;
+        }
+      ''}
     '';
   };
 
