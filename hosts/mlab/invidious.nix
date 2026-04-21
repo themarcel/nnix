@@ -17,6 +17,7 @@ in {
 
     settings = {
       login_only = true;
+      login_enabled = true;
       registration_enabled = false;
       unauthenticated_search_query_limit = 0;
       captcha_enabled = false;
