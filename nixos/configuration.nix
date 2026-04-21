@@ -330,6 +330,7 @@
     sbc
     chromium
     localsend
+    proton-authenticator
     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
       [General]
       background=/etc/sddm/black.png
