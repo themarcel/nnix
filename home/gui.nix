@@ -16,6 +16,7 @@ in {
     audio-select
     grayjay
     jellyfin-desktop
+    obsidian
     blesh
     # winetricks  # disabled: openal-soft/pipewire linking failure in current nixpkgs
     font-awesome

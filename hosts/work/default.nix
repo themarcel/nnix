@@ -27,6 +27,7 @@ in {
     (config.lib.nixGL.wrap mermaid-cli)
     (config.lib.nixGL.wrap aonsoku)
     (config.lib.nixGL.wrap localsend)
+    (config.lib.nixGL.wrap proton-authenticator)
   ];
 
   sops = {

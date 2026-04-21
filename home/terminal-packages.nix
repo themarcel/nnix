@@ -130,6 +130,7 @@ with pkgs; [
   patchutils
   pfetch
   pi-coding-agent
+  # pi-undo-redo
   playerctl
   poppler-utils
   prefetch-npm-deps

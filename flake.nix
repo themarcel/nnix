@@ -51,6 +51,7 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # pi-undo-redo.url = "path:/home/mmanzanares/clones/forks/pi-undo-redo";
     # hyprland = {
     #   url = "github:hyprwm/Hyprland";
     #   inputs.nixpkgs.follows = "nixpkgs";
@@ -113,6 +114,7 @@
         (final: prev: {haralyzer = import ./packages/haralyzer/package.nix {inherit pkgs;};})
         # (final: prev: { foot = inputs.foot-fork.packages.${system}.default; })
         (final: prev: {zuban = inputs.zuban.packages.${system}.default;})
+        # (final: prev: {pi-undo-redo = inputs.pi-undo-redo.packages.${pkgs.system}.default;})
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
