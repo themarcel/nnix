@@ -15,6 +15,7 @@ in {
   home.packages = with pkgs; [
     audio-select
     grayjay
+    orion
     jellyfin-desktop
     obsidian
     blesh
