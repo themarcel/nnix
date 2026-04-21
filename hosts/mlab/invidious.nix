@@ -16,7 +16,9 @@ in {
     extraSettingsFile = config.sops.templates."invidious-extra.json".path;
 
     settings = {
+      login_only = true;
       registration_enabled = false;
+      unauthenticated_search_query_limit = 0;
       captcha_enabled = false;
       pwned_check = false;
       invidious_companion = [

@@ -20,8 +20,8 @@
     ./miniflux.nix
     ./paperless.nix
     ./invidious.nix
-    ./piped.nix
-    ./hyperpipe.nix
+    # ./piped.nix
+    # ./hyperpipe.nix
   ];
 
   time.timeZone = "Europe/Madrid";
@@ -619,6 +619,7 @@
     atuin
     gnupg
     carapace
+    mysql84
     (writeShellScriptBin "import-music" ''
       if [ -z "$1" ]; then
         echo "No specific folder provided. Importing EVERYTHING in downloads..."
