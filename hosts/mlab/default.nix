@@ -42,7 +42,6 @@
       "authelia_oidc_issuer_key" = {owner = "authelia-main";};
       "authelia_tailscale_client_secret" = {owner = "authelia-main";};
       "authelia_admin_password" = {owner = "authelia-main";};
-      "bazarr_api" = {};
       "cloudflare_acme_token" = {};
       "cloudflare_ddclient_token" = {
         owner = "ddclient";
@@ -56,16 +55,13 @@
       };
       "navidrome_salt" = {};
       "navidrome_token" = {};
-      "prowlarr_api" = {};
       "qbit_password_hash" = {};
       "qbit_password_salt" = {};
-      "radarr_api" = {};
       "sabnzbd_api" = {};
       "seerr_api" = {};
       "slsk_pass" = {};
       "slsk_user" = {};
       "slskd_api_key" = {};
-      "sonarr_api" = {};
       "soulbeet_secret_key" = {};
       "web_pass" = {};
       "web_user" = {};
@@ -194,11 +190,6 @@
   };
   users.groups.media.gid = 986;
 
-  services.sonarr = {
-    enable = true;
-    openFirewall = true;
-  };
-
   systemd.tmpfiles.rules = [
     # Soulbeet and slskd
     "d /var/lib/soulbeet 0755 root root -"
@@ -231,7 +222,6 @@
     # Service Specific
     "d /var/lib/slskd/music/share 0775 slskd media -"
     "d /var/lib/seerr 0775 1000 media -"
-    "d /var/lib/chaptarr 0775 chaptarr media -"
 
     # SABnzbd
     "d /var/lib/sabnzbd 0775 sabnzbd media -"
@@ -243,12 +233,6 @@
 
   services.jellyfin = {
     enable = true;
-    openFirewall = true;
-  };
-
-  services.radarr = {
-    enable = true;
-    group = "media";
     openFirewall = true;
   };
 
@@ -387,27 +371,6 @@
     environment = {
       TZ = config.time.timeZone;
       PORT = toString services.seerr.port;
-    };
-    extraOptions = [
-      "--network=host"
-      "--init"
-    ];
-  };
-
-  virtualisation.oci-containers.containers.chaptarr = {
-    image = "robertlordhood/chaptarr:latest";
-    volumes = [
-      "/var/lib/chaptarr:/config"
-      "/var/lib/media/books:/var/lib/media/books"
-      "/var/lib/media/audiobooks:/var/lib/media/audiobooks"
-      "/var/lib/media/downloads:/var/lib/media/downloads"
-      "/var/lib/media/books/import:/var/lib/media/books/import"
-    ];
-    environment = {
-      TZ = config.time.timeZone;
-      PUID = "950"; # static chaptarr user UID
-      PGID = "986"; # system's 'media' group GID
-      UMASK = "002"; # allows CWA to move files
     };
     extraOptions = [
       "--network=host"
@@ -559,11 +522,6 @@
       };
     };
     allowConfigWrite = true;
-  };
-
-  services.prowlarr = {
-    enable = true;
-    openFirewall = true;
   };
 
   services.logrotate.checkConfig = false;
@@ -746,27 +704,8 @@
     users.qbittorrent.extraGroups = ["media"];
     groups.media = {};
 
-    users.sonarr = {
-      isSystemUser = true;
-      group = "sonarr";
-      extraGroups = ["media"];
-    };
-    groups.sonarr = {};
-
     users.sabnzbd = {
       extraGroups = ["media"];
-    };
-    users.radarr = {
-      extraGroups = ["media"];
-    };
-    users.chaptarr = {
-      isSystemUser = true;
-      group = "chaptarr";
-      extraGroups = ["media"];
-      uid = 950;
-    };
-    groups.chaptarr = {
-      gid = 950;
     };
   };
 
@@ -780,25 +719,7 @@
     port = services.immich.port;
   };
 
-  services.bazarr = {
-    enable = true;
-    group = "media";
-    openFirewall = true;
-  };
-  systemd.services.bazarr.serviceConfig = {
-    ReadWritePaths = ["/var/lib/media"];
-    UMask = lib.mkForce "0002";
-  };
-
   systemd.services = {
-    sonarr.serviceConfig = {
-      ReadWritePaths = ["/var/lib/media"];
-      UMask = lib.mkForce "0002";
-    };
-    radarr.serviceConfig = {
-      ReadWritePaths = ["/var/lib/media"];
-      UMask = lib.mkForce "0002";
-    };
     qbittorrent.serviceConfig = {
       ReadWritePaths = ["/var/lib/media"];
       UMask = lib.mkForce "0002";
