@@ -126,6 +126,11 @@
       port = 9800;
       href = "https://yt.marcel.cool";
     };
+    stalwartadmin = {
+      port = 8087;
+      href = "https://jmap-admin.marcel.cool";
+      protected = true;
+    };
     # ytmusic = {
     #   port = 9801;
     #   href = "https://ytmusic.marcel.cool";

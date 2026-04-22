@@ -53,9 +53,6 @@
       "app_user" = {};
       "cloudflare_acme_token" = {};
       "invidious_companion_key" = {};
-      "josep_password" = {
-        neededForUsers = true;
-      };
       "web_pass" = {};
       "web_user" = {};
       "grafana_secret_key" = {
@@ -238,11 +235,12 @@
       KbdInteractiveAuthentication = false;
       AllowAgentForwarding = true;
     };
-    extraConfig = ''
-      Match User josep
-        PasswordAuthentication yes
-        KbdInteractiveAuthentication yes
-    '';
+    # Add specific ssh rules for user X
+    # extraConfig = ''
+    #   Match User X
+    #     PasswordAuthentication yes
+    #     KbdInteractiveAuthentication yes
+    # '';
   };
 
   environment.systemPackages = with pkgs; [
@@ -350,10 +348,6 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN7c4J3kFLiJYHqUh9zkybQu0pjOu8tyofUnsd67se9m mlab server key"
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvff/camqPCFP3s0xfpjyMcw3y3V3/lEbh9Y1Q3Nj0M nix-on-droid@localhost"
       ];
-    };
-    users.josep = {
-      isNormalUser = true;
-      hashedPasswordFile = config.sops.secrets.josep_password.path;
     };
     users.root = {
       openssh.authorizedKeys.keys = [
