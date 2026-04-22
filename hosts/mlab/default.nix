@@ -34,6 +34,7 @@
     ./shoko.nix
     ./slskd.nix
     ./soulbeet.nix
+    ./stalwart.nix
     ./uptime-kuma.nix
     # ./piped.nix
     # ./hyperpipe.nix
@@ -112,7 +113,7 @@
       host    all             all             127.0.0.1/32            scram-sha-256
       host    all             all             ::1/128                 scram-sha-256
     '';
-    ensureDatabases = ["navidrome" "paperless"];
+    ensureDatabases = ["navidrome" "paperless" "stalwart"];
     ensureUsers = [
       {
         name = "navidrome";
@@ -120,6 +121,10 @@
       }
       {
         name = "paperless";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "stalwart";
         ensureDBOwnership = true;
       }
     ];

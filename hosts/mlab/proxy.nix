@@ -118,6 +118,10 @@
       href = "https://search.marcel.cool";
       protected = true;
     };
+    stalwart = {
+      port = 8086;
+      href = "https://jmap.marcel.cool";
+    };
     youtube = {
       port = 9800;
       href = "https://yt.marcel.cool";
