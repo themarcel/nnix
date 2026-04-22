@@ -51,6 +51,7 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    brave-origin-pr.url = "github:NixOS/nixpkgs?ref=refs/pull/511131/head";
     # pi-undo-redo.url = "path:/home/mmanzanares/clones/forks/pi-undo-redo";
     # hyprland = {
     #   url = "github:hyprwm/Hyprland";
@@ -79,6 +80,7 @@
     nixpkgs2405,
     crane,
     rust-overlay,
+    brave-origin-pr,
     ...
   } @ inputs: let
     # hyprlandInputs = inputs.hyprland;
@@ -118,6 +120,13 @@
         (final: prev: {"ki-editor" = inputs.ki-editor.packages.${system}.default;})
         (final: prev: {
           protonmail-desktop = inputs.my-nixpkgs.legacyPackages.${system}.protonmail-desktop;
+        })
+        (final: prev: {
+          "brave-origin" =
+            (import brave-origin-pr {
+              inherit system;
+              config.allowUnfree = true;
+            })."brave-origin";
         })
         #  force audio & bluetooth to use the stable channel
         # (final: prev: {

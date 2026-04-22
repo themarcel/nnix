@@ -16,6 +16,9 @@ in {
     audio-select
     grayjay
     orion
+    brave
+    brave-origin
+    librewolf
     jellyfin-desktop
     obsidian
     blesh
