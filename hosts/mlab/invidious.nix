@@ -8,7 +8,7 @@
 in {
   services.invidious = {
     enable = true;
-    domain = services.youtube.href;
+    domain = builtins.replaceStrings ["https://" "http://"] ["" ""] services.youtube.href;
     port = services.youtube.port;
     nginx.enable = false;
     database.createLocally = true;
