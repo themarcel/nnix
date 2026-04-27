@@ -400,7 +400,8 @@
   systemd.services.attic-watch-store = {
     description = "Attic Watch Store";
     wantedBy = ["multi-user.target"];
-    after = [];
+    wants = ["network-online.target"];
+    after = ["network-online.target"];
 
     serviceConfig = {
       User = "root";
