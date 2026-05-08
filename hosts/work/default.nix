@@ -28,6 +28,7 @@ in {
     (config.lib.nixGL.wrap aonsoku)
     (config.lib.nixGL.wrap localsend)
     (config.lib.nixGL.wrap proton-authenticator)
+    (config.lib.nixGL.wrap brave-origin)
   ];
 
   sops = {

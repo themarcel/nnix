@@ -12,12 +12,16 @@ in {
   home.stateVersion = "26.05";
   programs.home-manager.enable = true;
 
+  programs.browserpass = {
+    enable = true;
+    browsers = ["brave"];
+  };
+
   home.packages = with pkgs; [
     audio-select
     grayjay
     orion
     brave
-    brave-origin
     librewolf
     jellyfin-desktop
     obsidian

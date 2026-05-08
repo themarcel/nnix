@@ -317,6 +317,7 @@
   environment.systemPackages = with pkgs; [
     attic-client
     vim
+    brave-origin
     neovim
     wget
     mullvad-vpn
