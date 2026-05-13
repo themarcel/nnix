@@ -320,6 +320,7 @@
 
   environment.systemPackages = with pkgs; [
     attic-client
+    swaybg
     vim
     brave-origin
     neovim
