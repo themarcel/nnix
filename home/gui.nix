@@ -1213,6 +1213,12 @@ in {
 
     # ".config/swaync/config.json".source = link "${dots}/.config/swaync/config.json";
 
+    ".config/BraveSoftware/Brave-Origin-Beta/NativeMessagingHosts/com.github.browserpass.native.json".source =
+      "${pkgs.browserpass}/lib/browserpass/hosts/chromium/com.github.browserpass.native.json";
+
+    ".config/BraveSoftware/Brave-Origin-Nightly/NativeMessagingHosts/com.github.browserpass.native.json".source =
+      "${pkgs.browserpass}/lib/browserpass/hosts/chromium/com.github.browserpass.native.json";
+
     ".local/share/applications/csvlens.desktop".text = ''
       [Desktop Entry]
       Type=Application
