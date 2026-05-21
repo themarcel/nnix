@@ -253,15 +253,10 @@
     # KDE will prompt separately after login.
     pam = {
       services = {
-        marcel = {
-          kwallet = {
-            enable = true;
-            package = pkgs.kdePackages.kwallet-pam;
-          };
-        };
-        # add gnome keyring support for kde applications
-        login = {
-          enableGnomeKeyring = true;
+        # unlock kwallet on sddm login so Brave/Chromium don't prompt for keyring password
+        sddm.kwallet = {
+          enable = true;
+          package = pkgs.kdePackages.kwallet-pam;
         };
       };
     };
